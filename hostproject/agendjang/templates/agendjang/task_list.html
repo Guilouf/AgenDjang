@@ -1,1 +1,7 @@
 task list template
+
+
+{% for task in object_list %}
+   <th> <a href="{% url 'detail_task' task.pk  %}"> {{ task.name }}</a></th>
+
+{% endfor %}
