@@ -1,5 +1,6 @@
 # AgenDjang
 Django app for task scheduling
+![Travis](https://img.shields.io/badge/Python%20-3.6-brightgreen.svg?style=plastic) ![Travis](https://img.shields.io/badge/Django%20-1.11-brightgreen.svg?style=plastic)
 
 # TODO
 - [ ] Add the javascript calendar, full calendar
