@@ -3,6 +3,7 @@ Django app for task scheduling
 ![Travis](https://img.shields.io/badge/Python%20-3.6-brightgreen.svg?style=plastic) ![Travis](https://img.shields.io/badge/Django%20-1.11-brightgreen.svg?style=plastic)
 
 # TODO
+- [ ] Add FullCalendar as a git submodule, a dependency
 - [ ] Add the javascript calendar, full calendar
 - [ ] Make patches for all project related files
 - [ ] Markdown support for TextFields
