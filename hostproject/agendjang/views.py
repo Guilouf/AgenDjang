@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 
 from django.urls import reverse_lazy
 
@@ -19,3 +19,6 @@ class TaskList(ListView):
 
 class TaskDetail(DetailView):
     model = Task
+
+class CalendarView(TemplateView):
+    template_name = 'agendjang/calendar.html'
