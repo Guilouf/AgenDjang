@@ -13,8 +13,9 @@ class Task(models.Model):
 
     many_tags = models.ManyToManyField('Tag', blank=True)
     many_dateranges = models.ManyToManyField('DateRange', blank=True)
+    schedule = models.ForeignKey('ScheduledTask', null=True, blank=True)  # ref if instantiated with scheduled task
 
-    # todo des subtasks ?
+    # todo add subtasks ?
 
     def __str__(self):
         return f"Task {self.name}"
@@ -23,8 +24,9 @@ class Task(models.Model):
 class ScheduledTask(Task):
     """
     Inherit from Task, or add in task attributes as non required fields ?
+    Instanciate tasks, with its task attributes
     """
-    many_tags = models.ManyToManyField('Tag', blank=True)  # todo add default tags (daily, monthly, onetime..)
+    # many_tags = models.ManyToManyField('Tag', blank=True)  # todo add default tags (daily, monthly, onetime..) # fixme pas sur de pouvoir sucharger ca..
     failed = models.BooleanField(default=False)  # if task not done before the deadline
     # fixme a task can't be both failed and done. rather have to be infered, or add unicity constraint ?
     # deadline = models.DateTimeField()

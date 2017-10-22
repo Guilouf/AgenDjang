@@ -20,5 +20,6 @@ class TaskList(ListView):
 class TaskDetail(DetailView):
     model = Task
 
+
 class CalendarView(TemplateView):
     template_name = 'agendjang/calendar.html'
