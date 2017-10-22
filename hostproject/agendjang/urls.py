@@ -1,8 +1,18 @@
 from django.conf.urls import url, include
 from agendjang import views
+from rest_framework import routers
+
+
+# For DRF:
+router = routers.DefaultRouter()
+# no regex here
+router.register(r'tasks', views.TaskViewSet)  # , base_name='api-tasks')
 
 
 urlpatterns = [
+    # api root path
+    url(r'^api/', include(router.urls, namespace='api'), ),
+
     # calendar
     url(r'^calendar$', views.CalendarView.as_view(), name='view_calendar'),
 
