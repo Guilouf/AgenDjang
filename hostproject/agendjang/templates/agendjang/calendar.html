@@ -12,13 +12,40 @@
 </head>
 <body>
     <div id='calendar'></div>
+    <!--todo faut le faire en ajax -->
     <script>
+
         $(document).ready(function() {
 
             // page is now ready, initialize the calendar...
 
             $('#calendar').fullCalendar({
                 // put your options and callbacks here
+                editable: true,
+
+                //les evenements:
+                // donc on peut les mettre à l'arrache depuis template
+                events: [{
+                    title: "merde",
+                    start: '2017-10-21',
+                    end: '2017-10-22',
+                    },],
+
+
+
+                dayClick: function() {
+                    alert('a day has been clicked!');
+
+                    var event1= {
+                        title: "putain de merde",
+                        start: '2017-10-23',
+                        end: '2017-10-24',
+                    };
+
+                    // ajout de event1
+                    $('#calendar').fullCalendar( 'renderEvent', event1, true);
+
+                }
             })
 
         });
