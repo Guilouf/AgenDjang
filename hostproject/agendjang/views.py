@@ -31,3 +31,6 @@ class TaskDetail(DetailView):
 
 class CalendarView(TemplateView):
     template_name = 'agendjang/calendar.html'
+
+class JavascriptCalendarView(TemplateView):
+    template_name = 'agendjang/js_calendar.js'

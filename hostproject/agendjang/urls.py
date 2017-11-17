@@ -13,8 +13,9 @@ urlpatterns = [
     # api root path
     url(r'^api/', include(router.urls, namespace='api'), ),
 
-    # calendar
+    # calendars
     url(r'^calendar$', views.CalendarView.as_view(), name='view_calendar'),
+    url(r'^js_calendar$', views.JavascriptCalendarView.as_view(), name='view_js_calendar'),
 
     # Tasks
     url(r'^create_task$', views.TaskCreate.as_view(), name='create_task'),
