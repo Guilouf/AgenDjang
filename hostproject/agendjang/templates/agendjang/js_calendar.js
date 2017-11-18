@@ -5,55 +5,58 @@ $(document).ready(function() {
 
             $('#calendar').fullCalendar({
                 // put your options and callbacks here
-                editable: true,
-
-                //les evenements:
-                // donc on peut les mettre à l'arrache depuis template
-                events: [{
-                    title: "merde",
-                    start: '2017-10-21',
-                    end: '2017-10-22',
-                    },],
+                editable: true,  // mais encore ?
 
 
 
-                dayClick: function() {
-                    //alert('a day has been clicked!');
-                    /*
-                    $.getJSON("http://127.0.0.1:8000/api/tasks/1/", function(result){
-                        $.each(result, function(i, field){
-                            alert(field);
-                        });
-                    });
-                    */
-                    /*
-                    $.getJSON("http://127.0.0.1:8000/api/tasks/1/", function(result){
-                        alert(result['name']);
-                    });
-                    */
 
-                    // je crois que j'ai pas compris le principe de l'ajax en fait...
 
+
+                // when we clic a day..
+                dayClick: function(datee) {  // on rajoute comme arg ce que l'on veut recup ds la callback, rien sinon
+                    alert(datee + 'has been clicked!'); // 1970.. et que la date du jour
 
 
                     var event1= {
-                        //title: "putain de merde",
-                        //title: $.get('http://127.0.0.1:8000/api/tasks/1/', function(data) { alert(data.attr('name'))}),
-                        //title: $.get('http://127.0.0.1:8000/api/tasks/1/'),
-
-                        start: '2017-10-23',
-                        end: '2017-10-24',
+//                        start: "{% now 'Y-m-d' %}",  // tag django today date ~'2017-11-17'
+                        //mais on utilise pas ca mais la date js
+                        start: datee,
+                        end: datee,
                     };
 
-                    // appel ajax
-                    $.getJSON("http://127.0.0.1:8000/api/tasks/1/", function(result){
-                        event1['title'] = result['name'];
+                    /*
+                    // appel get en ajax
+                    // detail or list as suffixe for drf to get the rigth view, api: is the router name
+//                    $.getJSON("{% url 'api:tasks-detail' 1%}", function(result){ // comment passer le 1 au tag ? hein ?
+                    $.getJSON("{% url 'api:tasks-list'%}1", function(result){ // ben comme d'hab on triche
+
+                        event1['title'] = result['name'];  // result reppr le json du get
+
                         // ajout de event1
-                        $('#calendar').fullCalendar( 'renderEvent', event1, true);
+                        $('#calendar').fullCalendar( 'renderEvent', event1, true); //true c'est pour qu'il reste a chaque changement de mois etc..
                     });
+                    */
+
+                    var task_post = {
+                        name: "ouloulou",
+
+                    };
+
+                    // postJSON does not exist.. => extra param viva js, jquery
+                    $.post("{% url 'api:tasks-list'%}", task_post, function(response) {
+                        alert("truc posted"); // todo et pour les erreurs ?
+                    }, 'json');
+
+//                    alert($('#calendar').fullCalendar('clientEvents')[1]['title']);  // retourne un tableau d'event, on prend le premier
+
+                },
 
 
-                }
+                // quand on clique sur un event..
+                eventClick: function(event) { // on aussi avoir la position de la souris, la vue etc..
+                    alert(event['title'] + ' event clicked');
+                },
+
             })
 
         });
