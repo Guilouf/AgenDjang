@@ -1,13 +1,19 @@
-// dynamic js, why not,
-$(document).ready(function() {
+// template dynamic js, why not,
+$(document).ready(function() {  // called when page completly loaded
 
-            // page is now ready, initialize the calendar...
+            // helper: view-source:https://fullcalendar.io/js/fullcalendar-3.7.0/demos/agenda-views.html
 
             $('#calendar').fullCalendar({
                 // put your options and callbacks here
-                editable: true,  // mais encore ?
+                editable: true,  // event on the calendar can be modified
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay,listWeek'
+                },
 
 
+                // todo load by ajax the existing tasks with timestamp
 
 
 
@@ -20,11 +26,16 @@ $(document).ready(function() {
                     var event1= {
 //                        start: "{% now 'Y-m-d' %}",  // tag django today date ~'2017-11-17'
                         //mais on utilise pas ca mais la date js
+
+                        // if start == end => all day event (no hour set) fixme c'est vrai ca ??
+                        // 2 event with same id => repeated
+
                         start: datee,
                         end: datee,
+//                        url: 'http://google.com/',  // overides click event
                     };
 
-                    /*
+
                     // appel get en ajax
                     // detail or list as suffixe for drf to get the rigth view, api: is the router name
 //                    $.getJSON("{% url 'api:tasks-detail' 1%}", function(result){ // comment passer le 1 au tag ? hein ?
@@ -35,7 +46,7 @@ $(document).ready(function() {
                         // ajout de event1
                         $('#calendar').fullCalendar( 'renderEvent', event1, true); //true c'est pour qu'il reste a chaque changement de mois etc..
                     });
-                    */
+
 
                     var task_post = {
                         name: "ouloulou",
@@ -54,8 +65,20 @@ $(document).ready(function() {
 
                 // quand on clique sur un event..
                 eventClick: function(event) { // on aussi avoir la position de la souris, la vue etc..
-                    alert(event['title'] + ' event clicked');
+                    alert(event['title'] + ' event clicked: startdate ' + event['start']);
                 },
+
+                // when dragndrop finished and datetime changed
+                eventDrop: function(event, delta, revertFunc) {
+                    alert(event['title'] + ' datetime changed: ' + event['start'] );
+                    // todo update the task by ajax
+                },
+
+                // when timestamp resize is finished and time changed
+                eventResize: function(event, delta, revertFunc) {
+                    alert(event['title'] + ' datetime resized: ' + event['start'] );
+                }
+
 
             })
 

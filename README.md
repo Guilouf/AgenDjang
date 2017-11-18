@@ -5,8 +5,7 @@ Django app for task scheduling
 
 # TODO
 - [X] Add the javascript calendar, full calendar
-- [ ] Use AJAX
-- [ ] Use DRF for AJAX ?
+- [X] Use DRF for AJAX
 - [ ] Add FullCalendar as a git submodule, a dependency
     > Bad idea, better use a dependency manager for js, like bower, webpack, yarn
 - [ ] Make patches for all project related files
