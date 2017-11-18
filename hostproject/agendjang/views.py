@@ -32,5 +32,7 @@ class TaskDetail(DetailView):
 class CalendarView(TemplateView):
     template_name = 'agendjang/calendar.html'
 
-class JavascriptCalendarView(TemplateView):
+
+class JavascriptCalendarView(ListView):
+    model = Task  # listview because i export tasklist in the js calendar as django tags
     template_name = 'agendjang/js_calendar.js'
