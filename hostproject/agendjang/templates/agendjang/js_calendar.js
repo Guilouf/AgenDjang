@@ -13,7 +13,17 @@ $(document).ready(function() {  // called when page completly loaded
                 },
 
 
-                // todo load by ajax the existing tasks with timestamp
+                // init by django tag the existing tasks with timestamp
+                events: [
+                    {% for task in object_list %}
+                        {
+                            title: '{{ task.name }}',
+                            // .0 django template list index (first daterange occurence for now)
+                            start: '{{ task.many_dateranges.all.0.start_date | date:'c'  }}', // iso 8601
+
+                        },
+                    {% endfor %}
+                ],
 
 
 
