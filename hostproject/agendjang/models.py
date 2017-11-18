@@ -36,6 +36,7 @@ class ScheduledTask(Task):
 
 class DateRange(models.Model):
     start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
     range = models.DurationField()  # use with datetime.timedelta
     # fixme start date+range or start + end date ?
 
