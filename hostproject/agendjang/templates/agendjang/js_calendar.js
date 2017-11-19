@@ -3,6 +3,17 @@ $(document).ready(function() {  // called when page completly loaded
 
             // helper: view-source:https://fullcalendar.io/js/fullcalendar-3.7.0/demos/agenda-views.html
 
+            // wrapper for ajax put
+            function put(url_, data_, callback_) {
+                $.ajax({  // fixme csrf, faut pas envoyer de cookies
+                    url: url_,  // leave trailing /
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data_),
+                    success: callback_,
+                });
+            };
+
             $('#calendar').fullCalendar({
                 // put your options and callbacks here
                 editable: true,  // event on the calendar can be modified
@@ -23,6 +34,7 @@ $(document).ready(function() {  // called when page completly loaded
                                 title: '{{ task.name }}',
                                 // .0 django template list index
                                 start: '{{ daterange.start_date | date:'c'  }}', // iso 8601
+                                end: '{{ daterange.end_date | date:'c'  }}', // iso 8601
 
                             },
                         {% endfor %}
@@ -83,29 +95,28 @@ $(document).ready(function() {  // called when page completly loaded
 
                 // when dragndrop finished and datetime changed
                 eventDrop: function(event, delta, revertFunc) {
-                    alert(event['title'] + ' datetime changed: ' + event['start'] );
-                    // todo update the task by ajax
-                },
-
-                // when timestamp resize is finished and time changed
-                eventResize: function(event, delta, revertFunc) {
-
-
                     daterange = {
                         start_date: event['start'],
                         end_date: event['end'],
                     };
 
-                    // jquery .put doesnt exist..
-                    $.ajax({  // fixme csrf, faut pas envoyer de cookies
-                        url: "{% url 'api:dateranges-list'%}"+event['id']+'/',  // leave trailing /
-                        type: 'PUT',
-                        contentType: 'application/json',
-                        data: JSON.stringify(daterange),
-                        success: function(data) {
-                            alert('put success!!!');
-                        }
-                    });
+                    // jquery .put doesnt exist.. put wrapper
+                    put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
+                        function(data) { alert('drop put success!!!');}
+                    );
+                },
+
+                // when timestamp resize is finished and time changed
+                eventResize: function(event, delta, revertFunc) {
+                    daterange = {
+                        start_date: event['start'],
+                        end_date: event['end'],
+                    };
+
+
+                    put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
+                    function(data) { alert('resize put success!!!');}
+                    );
 
                 }
 
