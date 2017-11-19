@@ -90,7 +90,8 @@ $(document).ready(function() {  // called when page completly loaded
 
                 // quand on clique sur un event..
                 eventClick: function(event) { // on aussi avoir la position de la souris, la vue etc..
-                    alert(event['title'] + ' event clicked: startdate ' + event['start']);
+                    $('#task_dialog').load("create_task");  // relative url, resolver useless
+                    $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
                 },
 
                 // when dragndrop finished and datetime changed
