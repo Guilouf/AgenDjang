@@ -6,6 +6,7 @@ $(document).ready(function() {  // called when page completly loaded
             $('#calendar').fullCalendar({
                 // put your options and callbacks here
                 editable: true,  // event on the calendar can be modified
+                slotLabelFormat: 'H(:mm)',  //24h date format
                 header: {
                     left: 'prev,next today',
                     center: 'title',
@@ -16,12 +17,15 @@ $(document).ready(function() {  // called when page completly loaded
                 // init by django tag the existing tasks with timestamp
                 events: [
                     {% for task in object_list %}
-                        {
-                            title: '{{ task.name }}',
-                            // .0 django template list index (first daterange occurence for now)
-                            start: '{{ task.many_dateranges.all.0.start_date | date:'c'  }}', // iso 8601
+                        {% for daterange in task.many_dateranges.all %}
+                            {
+                                id: '{{ daterange.pk }}',  // diff id even with repeated event
+                                title: '{{ task.name }}',
+                                // .0 django template list index
+                                start: '{{ daterange.start_date | date:'c'  }}', // iso 8601
 
-                        },
+                            },
+                        {% endfor %}
                     {% endfor %}
                 ],
 
@@ -68,7 +72,6 @@ $(document).ready(function() {  // called when page completly loaded
                         alert("truc posted"); // todo et pour les erreurs ?
                     }, 'json');
 
-//                    alert($('#calendar').fullCalendar('clientEvents')[1]['title']);  // retourne un tableau d'event, on prend le premier
 
                 },
 
@@ -86,7 +89,24 @@ $(document).ready(function() {  // called when page completly loaded
 
                 // when timestamp resize is finished and time changed
                 eventResize: function(event, delta, revertFunc) {
-                    alert(event['title'] + ' datetime resized: ' + event['start'] );
+
+
+                    daterange = {
+                        start_date: event['start'],
+                        end_date: event['end'],
+                    };
+
+                    // jquery .put doesnt exist..
+                    $.ajax({  // fixme csrf, faut pas envoyer de cookies
+                        url: "{% url 'api:dateranges-list'%}"+event['id']+'/',  // leave trailing /
+                        type: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify(daterange),
+                        success: function(data) {
+                            alert('put success!!!');
+                        }
+                    });
+
                 }
 
 
