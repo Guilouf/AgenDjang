@@ -7,7 +7,7 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 # no regex here
 router.register(r'tasks', views.TaskViewSet, base_name='tasks')  # basename for reverse url tags
-
+router.register(r'dateranges', views.DateRangeViewSet, base_name='dateranges')
 
 urlpatterns = [
     # api root path

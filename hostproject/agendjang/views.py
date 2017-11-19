@@ -3,9 +3,9 @@ from django.views.generic import TemplateView, ListView, DetailView, CreateView,
 
 from django.urls import reverse_lazy
 
-from agendjang.models import Task
+from agendjang.models import Task, DateRange
 from agendjang.forms import TaskForm
-from agendjang.serializers import TaskSerializer
+from agendjang.serializers import TaskSerializer, DateRangeSerializer
 
 from rest_framework import viewsets
 
@@ -13,6 +13,11 @@ from rest_framework import viewsets
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()  # don't like, could be taken from name or serializer todo mixin
     serializer_class = TaskSerializer
+
+
+class DateRangeViewSet(viewsets.ModelViewSet):
+    queryset = DateRange.objects.all()
+    serializer_class = DateRangeSerializer
 
 
 class TaskCreate(CreateView):
