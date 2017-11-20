@@ -30,6 +30,7 @@ $(document).ready(function() {  // called when page completly loaded
                     {% for task in object_list %}
                         {% for daterange in task.many_dateranges.all %}
                             {
+                                task_id: '{{ task.pk }}',
                                 id: '{{ daterange.pk }}',  // diff id even with repeated event
                                 title: '{{ task.name }}',
                                 // .0 django template list index
@@ -58,7 +59,6 @@ $(document).ready(function() {  // called when page completly loaded
 
                         start: datee,
                         end: datee,
-//                        url: 'http://google.com/',  // overides click event
                     };
 
 
@@ -90,7 +90,9 @@ $(document).ready(function() {  // called when page completly loaded
 
                 // quand on clique sur un event..
                 eventClick: function(event) { // on aussi avoir la position de la souris, la vue etc..
-                    $('#task_dialog').load("create_task");  // relative url, resolver useless
+                    // fixme c'est propre mais c pas de l'ajax, faut reload la page a chaque post..
+                    // en revanche, ca va bien ac les event init via django template..
+                    $('#task_dialog').load("update_task/"+event['task_id']);  // relative url, resolver useless
                     $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
                 },
 

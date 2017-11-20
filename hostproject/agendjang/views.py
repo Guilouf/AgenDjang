@@ -23,8 +23,13 @@ class DateRangeViewSet(viewsets.ModelViewSet):
 class TaskCreate(CreateView):
     model = Task
     form_class = TaskForm
-    success_url = reverse_lazy('list_task')
+    success_url = reverse_lazy('view_calendar')
 
+
+class TaskUpdate(UpdateView):
+    model = Task
+    form_class = TaskForm
+    success_url = reverse_lazy('view_calendar')
 
 class TaskList(ListView):
     model = Task
