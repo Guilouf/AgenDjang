@@ -23,7 +23,5 @@ urlpatterns = [
     url(r'^tasks$', views.TaskList.as_view(), name='list_task'),
     url(r'^tasks/(?P<pk>\d+)$', views.TaskDetail.as_view(), name='detail_task'),
 
-    # tags
-    url(r'^tags$', views.TagList.as_view(), name='list_tag'),
 
 ]
