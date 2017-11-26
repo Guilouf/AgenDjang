@@ -22,6 +22,45 @@
 
     <div id='calendar'></div>
 
+    <div id=tags>
+
+    {% for tag in tag_list %}
+        <div id={{ tag.name }} class="accord" >
+
+            <h3>{{ tag.name }}</h3>
+
+
+            <div>
+            <!--div necessaire pour contenir les task et présenter l'accordeon-->
+            <!--le drag n drop jquery ne marche pas entre les différentes frames
+            du coup il faudrait utiliser le drag n drop html5 ou faire tt dans la mm frame
+            les données associées peuvent être passées en html(data-event), mais la div doit etre passée en draggable
+            par jquery-->
+
+            {% for task in tag.task_set.all %}
+                <div id="{{ task.name }}" > <ul><li>{{ task.name }}</li></ul> </div>
+                <!--fixme pb de css la div est en background-->
+
+                <!--fixme il faut post un new daterange quand on ajoute un nouvel evenement..-->
+                <script>
+                    $('#{{ task.name }}').data('event', { title: '{{ task.name }}',
+                        stick: true});
+                    $('#{{ task.name }}').draggable({
+                        revert: true,      // immediately snap back to original position
+                        revertDuration: 8,  //le temps que ca met a revenir. reviens mm quand succès, et succes que qd reviens..
+                        zIndex: 999, // c'est quoi ??
+                    });
+                </script>
+
+            {% endfor %}
+
+            </div>
+        </div>
+    {% endfor %}
+
+    </div>
+
+
 
 </body>
 </html>

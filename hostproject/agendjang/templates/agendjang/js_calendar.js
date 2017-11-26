@@ -1,5 +1,5 @@
 // template dynamic js, why not,
-$(document).ready(function() {  // called when page completly loaded
+$(document).ready(function() {  // called when page completly loaded fixme for external loaded html ??
 
             // helper: view-source:https://fullcalendar.io/js/fullcalendar-3.7.0/demos/agenda-views.html
 
@@ -14,9 +14,13 @@ $(document).ready(function() {  // called when page completly loaded
                 });
             };
 
+            //load the accordiion UI for the accord class
+            $(".accord").accordion({ collapsible: true, active: false }); // keep open multiple sections
+
             $('#calendar').fullCalendar({
                 // put your options and callbacks here
                 editable: true,  // event on the calendar can be modified
+                droppable: true, // allow external event drop
                 slotLabelFormat: 'H(:mm)',  //24h date format
                 header: {
                     left: 'prev,next today',
@@ -121,7 +125,11 @@ $(document).ready(function() {  // called when page completly loaded
                     function(data) { alert('resize put success!!!');}
                     );
 
-                }
+                },
+
+                drop: function(date) {
+                    alert("Dropped on " + date.format());
+                },
 
 
             })
