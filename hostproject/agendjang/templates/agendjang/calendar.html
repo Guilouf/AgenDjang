@@ -43,7 +43,10 @@
 
                 <!--fixme il faut post un new daterange quand on ajoute un nouvel evenement..-->
                 <script>
-                    $('#{{ task.name }}').data('event', { title: '{{ task.name }}',
+                    $('#{{ task.name }}').data('event', {
+                        title: '{{ task.name }}',
+                        task_id: '{{ task.pk }}',
+                        many_dateranges: [{% for daterange in task.many_dateranges.all %} {{ daterange.pk }}, {% endfor %}], // moche
                         stick: true});
                     $('#{{ task.name }}').draggable({
                         revert: true,      // immediately snap back to original position

@@ -14,6 +14,27 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 });
             };
 
+            // $.post ajax is somewhat more buggy... even with json flag
+            function post(url_, data_, callback_) {
+                $.ajax({  // fixme csrf, faut pas envoyer de cookies
+                    url: url_,  // leave trailing /
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data_),
+                    success: callback_,
+                });
+            };
+
+
+            function django_date(date_) {
+                /* Wrapper for moment.js(used by fullcal),
+                 here the date have always the same format even if hours missing
+                => 2017-11-28T13:00:00
+                'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
+                */
+                return date_.format('YYYY-MM-DD[T]HH:mm:ss');
+            };
+
             //load the accordiion UI for the accord class
             $(".accord").accordion({ collapsible: true, active: false }); // keep open multiple sections
 
@@ -83,11 +104,9 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
                     };
 
-                    // postJSON does not exist.. => extra param viva js, jquery
-                    $.post("{% url 'api:tasks-list'%}", task_post, function(response) {
+                    post("{% url 'api:tasks-list'%}", task_post, function(response) {
                         alert("truc posted"); // todo et pour les erreurs ?
-                    }, 'json');
-
+                    });
 
                 },
 
@@ -102,9 +121,9 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
                 // when dragndrop finished and datetime changed
                 eventDrop: function(event, delta, revertFunc) {
-                    daterange = {
-                        start_date: event['start'],
-                        end_date: event['end'],
+                    daterange = {  // todo pas de var et shadow naming
+                        start_date: django_date(event['start']),
+                        end_date: django_date(event['end']),  // fixme parfois vide, ne peut pas poster
                     };
 
                     // jquery .put doesnt exist.. put wrapper
@@ -116,19 +135,49 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 // when timestamp resize is finished and time changed
                 eventResize: function(event, delta, revertFunc) {
                     daterange = {
-                        start_date: event['start'],
-                        end_date: event['end'],
+                        start_date: django_date(event['start']),
+                        end_date: django_date(event['end']),
                     };
 
 
                     put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
                     function(data) { alert('resize put success!!!');}
                     );
-
                 },
 
                 drop: function(date) {
-                    alert("Dropped on " + date.format());
+                    // for low level data callback of external drop, not usefull
+                },
+
+                // drop callback only for low level drop data, this gets the external dropped event
+                eventReceive: function(event, view) {
+//                    alert("Dropped on " + event['title'] + " " + event['start']);
+
+                    // todo pk ca marche alors que j'ai pas mis var ??
+                    post_daterange = {
+                        // le fait d'avoir une variable fait que c'est plus de json de base
+                        start_date: django_date(event.start), // autre syntaxe de dico
+                        end_date: django_date(event['start'].add(1700, 'seconds')), // todo si trop court difficile manip
+                    };
+
+                    // post une nouvelle daterange
+                    post("{% url 'api:dateranges-list'%}", post_daterange, function(response) {
+                        alert("daterange drop posted, id: "+ response['id']);
+                        // todo faut lier le daterange à une task maintenant.. put la task, ou edit le task set ?
+                        // il me semble qu'il faut de toutes facon creer l'objet avant de pouvoir éditer des FKs
+
+                        task_put = {
+                            name: event['title'],
+                            many_dateranges: event['many_dateranges'].concat([response['id']]),
+                            // ajoute à la liste des pk de daterange la daterange fraichement postée
+                        };
+
+                        // associe la nouvelle daterange à la task existante
+                        put("{% url 'api:tasks-list'%}"+event['task_id']+'/', task_put,
+                            function(data) { alert('task put success!!!');}
+                        );
+                    });
+
                 },
 
 
