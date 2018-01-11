@@ -1,0 +1,35 @@
+/* ctrl + maj + A: color picker*/
+/*todo comment recharger cache chrome?*/
+body {
+    background-color: gray;
+}
+
+ul {  /* no bullet list */
+  list-style-type: none;
+}
+
+#tags {
+    background-color: gray;
+    float: right; /* On met tout à gauche */
+    width: 19%; /* 1% pour la marge*/
+    margin: 0px;
+}
+
+#tags div { /* Les div des catégories de tags (pareil tags div div mais avec le titre en plus) */
+    background-color: lightgray;
+    /* todo ce genre de chose qui pourra être modifié dynamiquement, pas forcément ici d'ailleurs*/
+}
+
+#tags div div {
+}
+
+#tags div div div { /* Les div des task dans les tags*/
+    border: 5px solid #73A471;
+    margin: 10px;
+}
+
+#calendar {
+    background-color: #73A471;
+    float: left;
+    width: 80%;
+}
