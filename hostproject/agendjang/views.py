@@ -4,7 +4,7 @@ from django.views.generic import TemplateView, ListView, DetailView, CreateView,
 from django.urls import reverse_lazy
 
 from agendjang.models import Task, DateRange, Tag
-from agendjang.forms import TaskForm
+from agendjang.forms import TaskForm, TagForm
 from agendjang.serializers import TaskSerializer, DateRangeSerializer
 
 from rest_framework import viewsets
@@ -46,6 +46,12 @@ class TaskList(ListView):
 
 class TaskDetail(DetailView):
     model = Task
+
+
+class TagCreate(CreateView):
+    model = Tag
+    form_class = TagForm
+    success_url = reverse_lazy('view_calendar')
 
 
 class CalendarView(TemplateView):

@@ -19,15 +19,24 @@
 
 </head>
 <body>
-    <!--display none to hide when page loaded-->
+    <!--display none to hide when page loaded; called by eventCLick in js_calendar-->
     <div id='task_dialog' title="Edit task" style="display: none;"></div>
 
     <div id='calendar'></div>
 
     <div id=tags>
+        <div id='tag_dialog' title="Create tag" style="display: none;"></div>
+        <script>
+            function tag_form () {
+                $('#tag_dialog').load("create_tag");
+                $('#tag_dialog').dialog({width: 'auto'});
+            };
+        </script>
+        <button id="btn_create_tag" type="button" onclick="tag_form()">New tag</button>
+        <!--todo faut faire un bouton pour éditer les tags au niveau de l'accordeon-->
 
     {% for tag in tag_list %}
-        <div id={{ tag.name }} class="accord" >
+        <div id="{{ tag.name }}" class="accord" >
 
             <h3>{{ tag.name }}</h3>
 
