@@ -25,6 +25,7 @@ urlpatterns = [
 
     # Tags
     url(r'^create_tag$', views.TagCreate.as_view(), name='create_tag'),
+    url(r'^update_tag/(?P<pk>\d+)$', views.TagUpdate.as_view(), name='update_tag'),
 
 
 ]

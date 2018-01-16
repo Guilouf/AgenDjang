@@ -54,6 +54,12 @@ class TagCreate(CreateView):
     success_url = reverse_lazy('view_calendar')
 
 
+class TagUpdate(UpdateView):
+    model = Tag
+    form_class = TagForm
+    success_url = reverse_lazy('view_calendar')
+
+
 class CalendarView(TemplateView):
     template_name = 'agendjang/calendar.html'
 
