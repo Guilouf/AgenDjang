@@ -36,7 +36,7 @@ class ScheduledTask(Task):
 
 class DateRange(models.Model):
     start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    end_date = models.DateTimeField(null=True)
 
     def __str__(self):
         return f"DateRange, {self.start_date}"

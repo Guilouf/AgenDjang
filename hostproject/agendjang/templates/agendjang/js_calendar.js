@@ -32,6 +32,9 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 => 2017-11-28T13:00:00
                 'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
                 */
+                if (date_ == null) {  // for the all day event
+                    return null
+                }
                 return date_.format('YYYY-MM-DD[T]HH:mm:ss');
             };
 
@@ -60,7 +63,8 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                                 title: '{{ task.name }}',
                                 // .0 django template list index
                                 start: '{{ daterange.start_date | date:'c'  }}', // iso 8601
-                                end: '{{ daterange.end_date | date:'c'  }}', // iso 8601
+                                end: '{{ daterange.end_date | date:'c'  }}', // iso 8601 fixme  la chaine vide est interprétée, faut une condition
+                                // todo essaye avec start == end
 
                             },
                         {% endfor %}
@@ -72,20 +76,11 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
                 // when we clic a day..
                 dayClick: function(datee) {  // on rajoute comme arg ce que l'on veut recup ds la callback, rien sinon
-                    alert(datee + 'has been clicked!'); // 1970.. et que la date du jour
 
-
-                    var event1= {
-//                        start: "{% now 'Y-m-d' %}",  // tag django today date ~'2017-11-17'
-                        //mais on utilise pas ca mais la date js
-
-                        // if start == end => all day event (no hour set) fixme c'est vrai ca ??
-                        // 2 event with same id => repeated
-
-                        start: datee,
-                        end: datee,
-                    };
-
+                    $('#task_dialog').load("create_task");  // relative url, resolver useless
+                    $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
+                    // todo faut préremplir le daterange... car je veut pas passer par l'api mais avoir un form
+                    // pas besoin de maj l'exemple, ca fait un refresh
 
                     // appel get en ajax
                     // detail or list as suffixe for drf to get the rigth view, api: is the router name
@@ -157,7 +152,8 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                     post_daterange = {
                         // le fait d'avoir une variable fait que c'est plus de json de base
                         start_date: django_date(event.start), // autre syntaxe de dico
-                        end_date: django_date(event['start'].add(1700, 'seconds')), // todo si trop court difficile manip
+//                        end_date: django_date(event['start'].add(1700, 'seconds')), // todo si trop court difficile manip
+                        end_date: django_date(event['end']),
                     };
 
                     // post une nouvelle daterange
