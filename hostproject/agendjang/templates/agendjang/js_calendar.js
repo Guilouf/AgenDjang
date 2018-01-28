@@ -5,7 +5,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
             // wrapper for ajax put
             function put(url_, data_, callback_) {
-                $.ajax({  // fixme csrf, faut pas envoyer de cookies
+                $.ajax({
                     url: url_,  // leave trailing /
                     type: 'PUT',
                     contentType: 'application/json',
@@ -16,7 +16,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
             // $.post ajax is somewhat more buggy... even with json flag
             function post(url_, data_, callback_) {
-                $.ajax({  // fixme csrf, faut pas envoyer de cookies
+                $.ajax({
                     url: url_,  // leave trailing /
                     type: 'POST',
                     contentType: 'application/json',
@@ -25,6 +25,16 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 });
             };
 
+            function too_late_color(date_end_) {
+                now = moment().valueOf();  //js timestamp
+
+                if (now > date_end_) {
+                    return "red"
+                }
+                else {
+                    return "green"
+                }// todo checker is done ou pas
+            }
 
             function django_date(date_) {
                 /* Wrapper for moment.js(used by fullcal),
@@ -32,9 +42,6 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 => 2017-11-28T13:00:00
                 'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
                 */
-                if (date_ == null) {  // for the all day event
-                    return null
-                }
                 return date_.format('YYYY-MM-DD[T]HH:mm:ss');
             };
 
@@ -45,6 +52,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 // put your options and callbacks here
                 editable: true,  // event on the calendar can be modified
                 droppable: true, // allow external event drop
+                forceEventDuration: true, // if not all day and no end date, create default end date
                 slotLabelFormat: 'H(:mm)',  //24h date format
                 header: {
                     left: 'prev,next today',
@@ -63,9 +71,11 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                                 title: '{{ task.name }}',
                                 // .0 django template list index
                                 start: '{{ daterange.start_date | date:'c'  }}', // iso 8601
-                                end: '{{ daterange.end_date | date:'c'  }}', // iso 8601 fixme  la chaine vide est interprétée, faut une condition
-                                // todo essaye avec start == end
-
+                                end: '{{ daterange.end_date | date:'c'  }}', // iso 8601
+                                // si l'evenement dure 24h, c'est un allday
+                                allDay: moment('{{ daterange.end_date | date:'c'  }}').valueOf()
+                                        - moment('{{ daterange.start_date | date:'c'  }}').valueOf() == 86400000 ? true : false,
+                                color: too_late_color(moment('{{ daterange.end_date | date:'c'  }}').valueOf()),
                             },
                         {% endfor %}
                     {% endfor %}
@@ -85,6 +95,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                     // appel get en ajax
                     // detail or list as suffixe for drf to get the rigth view, api: is the router name
 //                    $.getJSON("{% url 'api:tasks-detail' 1%}", function(result){ // comment passer le 1 au tag ? hein ?
+                    //todo supprimer ces merdes là..
                     $.getJSON("{% url 'api:tasks-list'%}1", function(result){ // ben comme d'hab on triche
 
                         event1['title'] = result['name'];  // result reppr le json du get
@@ -118,7 +129,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 eventDrop: function(event, delta, revertFunc) {
                     daterange = {  // todo pas de var et shadow naming
                         start_date: django_date(event['start']),
-                        end_date: django_date(event['end']),  // fixme parfois vide, ne peut pas poster
+                        end_date: django_date(event['end']),
                     };
 
                     // jquery .put doesnt exist.. put wrapper
@@ -146,31 +157,35 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
                 // drop callback only for low level drop data, this gets the external dropped event
                 eventReceive: function(event, view) {
-//                    alert("Dropped on " + event['title'] + " " + event['start']);
 
                     // todo pk ca marche alors que j'ai pas mis var ??
-                    post_daterange = {
+                    post_daterange = { // todo faire une fonction
                         // le fait d'avoir une variable fait que c'est plus de json de base
-                        start_date: django_date(event.start), // autre syntaxe de dico
-//                        end_date: django_date(event['start'].add(1700, 'seconds')), // todo si trop court difficile manip
-                        end_date: django_date(event['end']),
+                        start_date: django_date(event.start),
+                        end_date: django_date(event.end),
                     };
 
                     // post une nouvelle daterange
                     post("{% url 'api:dateranges-list'%}", post_daterange, function(response) {
-                        alert("daterange drop posted, id: "+ response['id']);
-                        // todo faut lier le daterange à une task maintenant.. put la task, ou edit le task set ?
-                        // il me semble qu'il faut de toutes facon creer l'objet avant de pouvoir éditer des FKs
+                        event.id = response['id']; // id of event is id of daterange
+                        event['many_dateranges'] = event['many_dateranges'].concat([response['id']]);
+
 
                         task_put = {
                             name: event['title'],
-                            many_dateranges: event['many_dateranges'].concat([response['id']]),
+                            many_dateranges: event['many_dateranges'],
+                            // fixme le problème c'est que l'objet event ds l'accordeon n'est pas mis a jour tant qu'il
+                            //n'y a pas de refresh'
+                            // du coup on peut pas ajouter plusieurs daterange d'une mm task en une seule fois
                             // ajoute à la liste des pk de daterange la daterange fraichement postée
                         };
 
                         // associe la nouvelle daterange à la task existante
                         put("{% url 'api:tasks-list'%}"+event['task_id']+'/', task_put,
-                            function(data) { alert('task put success!!!');}
+                            function(data) {
+                                $('#calendar').fullCalendar('updateEvent', event); // here all async modif are commited
+                                alert('task put success!!! dateranges: '+event.many_dateranges);
+                            }
                         );
                     });
 
