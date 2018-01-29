@@ -25,15 +25,15 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 });
             };
 
-            function too_late_color(date_end_) {
+            function too_late_color(date_end_, done) {
                 now = moment().valueOf();  //js timestamp
 
-                if (now > date_end_) {
+                if (now > date_end_ && !done) {
                     return "red"
                 }
-                else {
+                else if (done) {
                     return "green"
-                }// todo checker is done ou pas
+                }
             }
 
             function django_date(date_) {
@@ -82,7 +82,9 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                                 // si l'evenement dure 24h, c'est un allday
                                 allDay: moment('{{ daterange.end_date | date:'c'  }}').valueOf()
                                         - moment('{{ daterange.start_date | date:'c'  }}').valueOf() == 86400000 ? true : false,
-                                color: too_late_color(moment('{{ daterange.end_date | date:'c'  }}').valueOf()),
+                                color: too_late_color(moment('{{ daterange.end_date | date:'c'  }}').valueOf()
+                                                      , {{task.done|yesno:"true,false"}}  ),// convertit en bool js
+                                                      // backgroundColor aussi
                             },
                         {% endfor %}
                     {% endfor %}
