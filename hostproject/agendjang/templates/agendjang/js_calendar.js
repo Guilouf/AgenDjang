@@ -54,10 +54,17 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 droppable: true, // allow external event drop
                 forceEventDuration: true, // if not all day and no end date, create default end date
                 slotLabelFormat: 'H(:mm)',  //24h date format
+                firstDay: 1, // start monday
+
                 header: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'month,agendaWeek,agendaDay,listWeek'
+                },
+                views: { // like general option, but only apply to specific views
+                    week: {
+                        columnFormat: 'ddd D/M', //overides also for month view
+                    },
                 },
 
 
