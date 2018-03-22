@@ -13,7 +13,7 @@ class Task(models.Model):
 
     many_tags = models.ManyToManyField('Tag', blank=True)
     many_dateranges = models.ManyToManyField('DateRange', blank=True)
-    schedule = models.ForeignKey('ScheduledTask', null=True, blank=True)  # ref if instantiated with scheduled task
+    schedule = models.ForeignKey('ScheduledTask', null=True, blank=True, on_delete=models.CASCADE)  # ref if instantiated with scheduled task
 
     # todo add subtasks ?
 
