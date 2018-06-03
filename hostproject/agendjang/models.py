@@ -23,15 +23,13 @@ class Task(models.Model):
 
 class ScheduledTask(Task):
     """
-    Inherit from Task, or add in task attributes as non required fields ?
-    Instanciate tasks, with its task attributes
+    Instanciate new tasks, with its task attributes
     """
-    # many_tags = models.ManyToManyField('Tag', blank=True)  # todo add default tags (daily, monthly, onetime..) # fixme pas sur de pouvoir sucharger ca..
-    failed = models.BooleanField(default=False)  # if task not done before the deadline
-    # fixme a task can't be both failed and done. rather have to be infered, or add unicity constraint ?
-    # deadline = models.DateTimeField()
-    # chronicity = models.DurationField(null=True, blank=True)  # how often is it repeated
-    # repeats = models.IntegerField(null=True, blank=True)  # how many times its repeated (null never, 0 infinite)
+    CHRON_CHOICE = [('days', 'Day'), ('weeks', 'Week'), ('months', 'Month'), ('years', 'Year')]
+    chronicity = models.CharField(choices=CHRON_CHOICE, max_length=50)
+    # non required because dateranges are not required in Tasks
+
+    repeats = models.PositiveIntegerField()  # how many times its repeated (0 infinite)
 
 
 class DateRange(models.Model):
@@ -40,6 +38,13 @@ class DateRange(models.Model):
 
     def __str__(self):
         return f"DateRange, {self.start_date}"
+
+    def __add__(self, other):
+        return DateRange(start_date=self.start_date + other, end_date=self.end_date + other)
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        super().save(force_insert, force_update, using, update_fields)
+        return self  # allow to chain the save method
 
 
 class Tag(models.Model):
