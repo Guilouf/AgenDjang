@@ -25,6 +25,7 @@ urlpatterns = [
 
     # ScheduledTasks
     url(r'^create_schedtask$', views.ScheduledTaskCreate.as_view(), name='create_schedtask'),
+    url(r'^update_schedtask/(?P<pk>\d+)$', views.ScheduledTaskUpdate.as_view(), name='update_schedtask'),
 
     # Tags
     url(r'^create_tag$', views.TagCreate.as_view(), name='create_tag'),
