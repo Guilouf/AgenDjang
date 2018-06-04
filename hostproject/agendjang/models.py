@@ -13,7 +13,6 @@ class Task(models.Model):
 
     many_tags = models.ManyToManyField('Tag', blank=True)
     many_dateranges = models.ManyToManyField('DateRange', blank=True)
-    schedule = models.ForeignKey('ScheduledTask', null=True, blank=True, on_delete=models.CASCADE)  # ref if instantiated with scheduled task
 
     # todo add subtasks ?
 
@@ -30,6 +29,8 @@ class ScheduledTask(Task):
     # non required because dateranges are not required in Tasks
 
     repeats = models.PositiveIntegerField()  # how many times its repeated (0 infinite)
+    # keep a trace of all instantiated tasks
+    many_tasks = models.ManyToManyField('Task', null=True, blank=True, related_name="linked_tasks")
 
 
 class DateRange(models.Model):
