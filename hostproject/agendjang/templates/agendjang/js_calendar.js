@@ -45,6 +45,15 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
         return date_.format('YYYY-MM-DD[T]HH:mm:ss');
     };
 
+    function f_post_daterange(start, end, callback_) {
+        post_daterange = {
+                // le fait d'avoir une variable fait que c'est plus de json de base
+                start_date: django_date(start),
+                end_date: django_date(end),
+            };
+        post("{% url 'api:dateranges-list'%}", post_daterange, callback_)
+    }
+
     //load the accordiion UI for the accord class
     $(".accord").accordion({ collapsible: true, active: false }); // keep open multiple sections
 
@@ -96,10 +105,13 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
         // when we clic a day..
         dayClick: function(datee) {  // on rajoute comme arg ce que l'on veut recup ds la callback, rien sinon
 
-            $('#task_dialog').load("create_task");  // relative url, resolver useless
-            $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
-            // todo faut préremplir le daterange... car je veut pas passer par l'api mais avoir un form
-            // pas besoin de maj l'exemple, ca fait un refresh
+            f_post_daterange(datee, datee, function(response) {
+                $('#task_dialog').load("create_task", function() { // relative url, resolver useless
+                    $('#id_many_dateranges').empty().append("<option selected='selected' value="
+                     + response['id'] + ">  La bonne date </option>");  // modify form to auto add the daterange
+                    $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
+                });
+            })
         },
 
 
@@ -143,15 +155,9 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
         // drop callback only for low level drop data, this gets the external dropped event
         eventReceive: function(event, view) {
-            // todo pk ca marche alors que j'ai pas mis var ??
-            post_daterange = { // todo faire une fonction
-                // le fait d'avoir une variable fait que c'est plus de json de base
-                start_date: django_date(event.start),
-                end_date: django_date(event.end),
-            };
 
-            // post une nouvelle daterange
-            post("{% url 'api:dateranges-list'%}", post_daterange, function(response) {
+            // post a new daterange, but if form is cancelled it's keeped in db
+            f_post_daterange(event.start, event.end, function(response) {
                 event.id = response['id']; // id of event is id of daterange
                 event['many_dateranges'] = event['many_dateranges'].concat([response['id']]);
 
@@ -175,7 +181,6 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 } else {
                     // get the DOM, modify it by inserting the new daterange key
                     $(event.dom[0]).load(event.dom[1], function() {  // no need async to popup dialog but to modify the DOM before
-                        temp = document.querySelector("#id_many_dateranges");
                         $('#id_many_dateranges').empty().append("<option selected='selected' value="
                          + event.many_dateranges + ">  La bonne date </option>");  // modify form to auto add the daterange
                         $(event.dom[0]).dialog({width: 'auto'});  // load pop up
