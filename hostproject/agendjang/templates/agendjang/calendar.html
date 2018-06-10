@@ -67,19 +67,25 @@
                         onclick="load_dialog('#modify_tag_dialog', 'update_tag/{{tag.pk}}')">Modify tag</button>
 
             {% for task in tag.task_set.all %}
-                <!--plusieurs classes separées par des espaces-->
-                <div class="task_div {{ task.pk }}"> {{ task.name }}  </div>
+                {% if not task.done %}
+                    <!--plusieurs classes separées par des espaces-->
+                    <div class="task_div {{ task.pk }}"> {{ task.name }}
 
-                <!--fixme il faut post un new daterange quand on ajoute un nouvel evenement..-->
-                <!--fixme c'est assez mauvais ca fait des copiés collés du code dans la page..=> un tableau ?-->
-                <script>
-                    $('.{{ task.pk }}').data('event', {
-                        title: '{{ task.name }}',
-                        task_id: '{{ task.pk }}',
-                        many_dateranges: [{% for daterange in task.many_dateranges.all %} {{ daterange.pk }}, {% endfor %}], // moche
-                        is_schedtask: false,  // custom flag from me
-                        stick: true});
-                </script>
+                        <div id='edit_task_dialog' title="Edit task" style="display: none;"></div>
+                            <button id="btn_edit_task" type="button"
+                                    onclick="load_dialog('#edit_task_dialog', 'update_task/{{task.pk}}' )">EDIT</button>
+                    </div>
+
+                    <!--fixme c'est assez mauvais ca fait des copiés collés du code dans la page..=> un tableau ?-->
+                    <script>
+                        $('.{{ task.pk }}').data('event', {
+                            title: '{{ task.name }}',
+                            task_id: '{{ task.pk }}',
+                            many_dateranges: [{% for daterange in task.many_dateranges.all %} {{ daterange.pk }}, {% endfor %}], // moche
+                            is_schedtask: false,  // custom flag from me
+                            stick: true});
+                    </script>
+                {% endif %}
 
             {% endfor %}
 
