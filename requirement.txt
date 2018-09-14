@@ -1,3 +1,4 @@
 # Commmented to be version agnostic
 django # >= 1.11
 djangorestframework # >= 3.6.3
+markdown # >= 2.6.11
