@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import HttpResponse
+from django.template import loader
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 
 from django.urls import reverse_lazy
@@ -8,7 +9,7 @@ from agendjang.forms import TaskForm, ScheduledTaskForm, TagForm
 from agendjang.serializers import TaskSerializer, DateRangeSerializer
 
 from rest_framework import viewsets
-
+from markdown import markdown
 
 #######
 # API #
@@ -27,6 +28,11 @@ class DateRangeViewSet(viewsets.ModelViewSet):
 #############
 # Templates #
 #############
+
+def help_view(request):
+    """read a markdown help file and convert it to html"""
+    return HttpResponse(markdown(loader.render_to_string('agendjang/help.md')))
+
 
 class TaskCreate(CreateView):
     model = Task
