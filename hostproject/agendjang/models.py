@@ -1,6 +1,13 @@
 from django.db import models
 
 
+class TaskManager(models.Manager):
+    """Overrides the default manager all() method in order to only return results that are not archived"""
+
+    def all(self):
+        return self.filter(archive=False)
+
+
 class Task(models.Model):
     """
     Procrastinated task
@@ -8,11 +15,14 @@ class Task(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     done = models.BooleanField(default=False)
+    archive = models.BooleanField(default=False)
     points = models.IntegerField(default=1)
     # color = models.Col  # django-colorfield pe
 
     many_tags = models.ManyToManyField('Tag', blank=True)
     many_dateranges = models.ManyToManyField('DateRange', blank=True)
+
+    objects = TaskManager()
 
     # todo add subtasks ?
 
@@ -30,7 +40,7 @@ class ScheduledTask(Task):
 
     repeats = models.PositiveIntegerField()  # how many times its repeated (0 infinite)
     # keep a trace of all instantiated tasks
-    many_tasks = models.ManyToManyField('Task', null=True, blank=True, related_name="linked_tasks")
+    many_tasks = models.ManyToManyField('Task', blank=True, related_name="linked_tasks")
 
 
 class DateRange(models.Model):
