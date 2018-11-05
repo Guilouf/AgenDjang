@@ -33,3 +33,7 @@ ul {  /* no bullet list */
     float: left;
     width: 80%;
 }
+
+footer {
+    clear: both;
+}
