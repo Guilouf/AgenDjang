@@ -11,6 +11,10 @@ class TaskForm(forms.ModelForm):
 
 
 class ScheduledTaskForm(forms.ModelForm):
+    CHRON_CHOICE = [('days', 'Day'), ('weeks', 'Week'), ('months', 'Month'), ('years', 'Year')]
+    chronicity = forms.ChoiceField(choices=CHRON_CHOICE)
+    repeats = forms.IntegerField(min_value=0)  # how many times its repeated (0 infinite)
+
     class Meta:
         model = ScheduledTask
         fields = '__all__'

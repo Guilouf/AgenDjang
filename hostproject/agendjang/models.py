@@ -34,11 +34,7 @@ class ScheduledTask(Task):
     """
     Instanciate new tasks, with its task attributes
     """
-    CHRON_CHOICE = [('days', 'Day'), ('weeks', 'Week'), ('months', 'Month'), ('years', 'Year')]
-    chronicity = models.CharField(choices=CHRON_CHOICE, max_length=50)
-    # non required because dateranges are not required in Tasks
 
-    repeats = models.PositiveIntegerField()  # how many times its repeated (0 infinite)
     # keep a trace of all instantiated tasks
     many_tasks = models.ManyToManyField('Task', blank=True, related_name="linked_tasks")
 
