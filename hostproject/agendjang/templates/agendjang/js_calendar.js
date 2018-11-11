@@ -132,7 +132,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
             // jquery .put doesnt exist.. put wrapper
             put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
-                function(data) { alert('drop put success!!!');}
+                function(data) {}
             );
         },
 
@@ -145,7 +145,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
 
             put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
-            function(data) { alert('resize put success!!!');}
+            function(data) {}
             );
         },
 
@@ -175,7 +175,6 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                     put("{% url 'api:tasks-list'%}"+event['task_id']+'/', task_put,
                         function(data) {
                             $('#calendar').fullCalendar('updateEvent', event); // here all async modif are commited
-                            alert('task put success!!! dateranges: '+event.many_dateranges);
                         }
                     );
                 } else {
