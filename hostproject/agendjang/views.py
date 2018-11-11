@@ -15,6 +15,7 @@ from markdown import markdown
 # API #
 #######
 
+
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()  # don't like, could be taken from name or serializer todo mixin
     serializer_class = TaskSerializer
@@ -84,6 +85,7 @@ class CalendarView(TemplateView):
     def get_context_data(self, **kwargs):  # adds the tag_list template tag, along object_list
         ctx = super().get_context_data(**kwargs)
         ctx['tag_list'] = Tag.objects.all()
+        ctx['schedtask_list'] = ScheduledTask.objects.all()
         return ctx
 
 
