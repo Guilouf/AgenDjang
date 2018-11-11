@@ -18,6 +18,13 @@
     <script src="{% url 'view_js_calendar' %}"></script>
 
 </head>
+
+<footer>
+    <div id='help_page' title="Help Page" style="display: none;"></div>
+    <button id="btn_help" type="button"
+            onclick="load_dialog('#help_page', 'help')">Help</button>
+</footer>
+
 <body>
     <!--display none to hide when page loaded; called by eventCLick in js_calendar-->
     <div id='task_dialog' title="Edit task" style="display: none;"></div>
@@ -108,10 +115,5 @@
 
 </body>
 
-<footer>
-    <div id='help_page' title="Help Page" style="display: none;"></div>
-    <button id="btn_help" type="button"
-            onclick="load_dialog('#help_page', 'help')">Help</button>
-</footer>
 
 </html>
