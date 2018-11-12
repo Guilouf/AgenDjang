@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
 
 
 class TaskManager(models.Manager):
@@ -42,6 +44,8 @@ class ScheduledTask(Task):
 class DateRange(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
+    task_myset = models.ManyToManyField(Task, through=Task.many_dateranges.through, blank=True)
+    # this is an explicit reverse m2m relationship, but its useless here
 
     def __str__(self):
         return f"DateRange, {self.start_date}"
@@ -61,3 +65,10 @@ class Tag(models.Model):
 
     def __str__(self):
         return f"Tag {self.name}"
+
+
+@receiver(m2m_changed, sender=Task.many_dateranges.through)
+def delete_orphean_dateranges(sender, **kwargs):
+    """deletes dateranges that are not linked to any task"""
+    if kwargs['action'] == 'post_remove':
+        DateRange.objects.filter(pk__in=kwargs['pk_set'], task_myset=None).delete()
