@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from agendjang.models import Task, ScheduledTask, Tag
 
 from dateutil.relativedelta import relativedelta
@@ -45,6 +46,8 @@ class ScheduledTaskForm(forms.ModelForm):
                     # then copy and add a timedelta to these dateranges for the new task (cf Dateranges __add__)
                     task.many_dateranges.set([(daterange + relativedelta(**chron)).save()  # no full_clean, should be ok
                                               for daterange in self.cleaned_data['many_dateranges']])
+                else:
+                    raise ValidationError({'many_dateranges': 'Scheduled Tasks needs at least one DateRange'})
 
         else:  # infinite repetitions
             pass  # gros bordel
