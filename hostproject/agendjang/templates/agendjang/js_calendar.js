@@ -161,24 +161,24 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 event.id = response['id']; // id of event is id of daterange
                 event['many_dateranges'] = event['many_dateranges'].concat([response['id']]);
 
-                if (event.is_schedtask == false) {
-                    task_put = {
-                        name: event['title'],
-                        many_dateranges: event['many_dateranges'],
-                        // fixme le problème c'est que l'objet event ds l'accordeon n'est pas mis a jour tant qu'il
-                        //n'y a pas de refresh'
-                        // du coup on peut pas ajouter plusieurs daterange d'une mm task en une seule fois
-                        // ajoute à la liste des pk de daterange la daterange fraichement postée
-                    };
+                task_put = {
+                    name: event['title'],
+                    many_dateranges: event['many_dateranges'],
+                    // fixme le problème c'est que l'objet event ds l'accordeon n'est pas mis a jour tant qu'il
+                    //n'y a pas de refresh'
+                    // du coup on peut pas ajouter plusieurs daterange d'une mm task en une seule fois
+                    // ajoute à la liste des pk de daterange la daterange fraichement postée
+                };
 
-                    // associe la nouvelle daterange à la task existante
-                    put("{% url 'api:tasks-list'%}"+event['task_id']+'/', task_put,
-                        function(data) {
-                            $('#calendar').fullCalendar('updateEvent', event); // here all async modif are commited
-                        }
-                    );
-                } else {
-                    // get the DOM, modify it by inserting the new daterange key
+                // associe la nouvelle daterange à la task existante
+                put("{% url 'api:tasks-list'%}"+event['task_id']+'/', task_put,
+                    function(data) {
+                        $('#calendar').fullCalendar('updateEvent', event); // here all async modif are commited
+                    }
+                );
+
+                if (event.is_schedtask == true)  {  // for the first creation of schedtask
+                    // get the DOM, modify it by inserting the new daterange key (
                     $(event.dom[0]).load(event.dom[1], function() {  // no need async to popup dialog but to modify the DOM before
                         $('#id_many_dateranges').empty().append("<option selected='selected' value="
                          + event.many_dateranges + ">  La bonne date </option>");  // modify form to auto add the daterange
