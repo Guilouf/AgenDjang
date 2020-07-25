@@ -6,8 +6,8 @@ from rest_framework import routers
 # For DRF:
 router = routers.DefaultRouter()
 # no regex here
-router.register(r'tasks', views.TaskViewSet, base_name='tasks')  # basename for reverse url tags
-router.register(r'dateranges', views.DateRangeViewSet, base_name='dateranges')
+router.register(r'tasks', views.TaskViewSet, basename='tasks')  # basename for reverse url tags
+router.register(r'dateranges', views.DateRangeViewSet, basename='dateranges')
 
 urlpatterns = [
     # api root path
