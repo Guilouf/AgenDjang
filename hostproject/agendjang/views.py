@@ -93,6 +93,7 @@ class JavascriptCalendarView(ListView):
     model = Task  # listview because i export tasklist in the js calendar as django tags
     # todo faudrait pouvoir donner une liste de models.. faire une mixin bien classe...
     template_name = 'agendjang/js_calendar.js'
+    content_type = 'text/javascript'
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
