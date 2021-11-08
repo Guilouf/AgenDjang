@@ -1,4 +1,5 @@
 # Commmented to be version agnostic
-django # >= 1.11
-djangorestframework # >= 3.6.3
+django # >= 3.2.9
+djangorestframework # >= 3.12
 markdown # >= 2.6.11
+py-dateutil

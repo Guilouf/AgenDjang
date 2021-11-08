@@ -1,5 +1,5 @@
 # AgenDjang
-![Travis](https://img.shields.io/badge/Python%20-3.6-brightgreen.svg?style=plastic) ![Travis](https://img.shields.io/badge/Django%20-1.11-brightgreen.svg?style=plastic)
+![Travis](https://img.shields.io/badge/Python%20-3.8-brightgreen.svg?style=plastic) ![Travis](https://img.shields.io/badge/Django%20-3.2.9-brightgreen.svg?style=plastic)
 Django app for task scheduling
 
 
@@ -14,7 +14,9 @@ Django app for task scheduling
 - [ ] Interaction with the [google calendar API](https://developers.google.com/google-apps/calendar/quickstart/python)
 
 ## Install
-- Create project
-    - Linux `django startproject name_project`
-    - Windows `django-admin.exe startproject name_project`
-- Create app: `manage.py startapp AgenDjang`
+- `pip install -r requirements.txt`
+- `python mananage.py makemigrations` 
+- `python manange.py migrate`
+
+# Install in another project
+- Put `agendjang` and `rest_framework` in `INSTALLED_APPS`
