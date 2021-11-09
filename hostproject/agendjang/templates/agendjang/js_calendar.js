@@ -12,7 +12,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
             data: JSON.stringify(data_),
             success: callback_,
         });
-    };
+    }
 
     // $.post ajax is somewhat more buggy... even with json flag
     function post(url_, data_, callback_) {
@@ -23,7 +23,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
             data: JSON.stringify(data_),
             success: callback_,
         });
-    };
+    }
 
     function too_late_color(date_end_, done) {
         now = moment().valueOf();  //js timestamp
@@ -43,7 +43,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
         'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
         */
         return date_.format('YYYY-MM-DD[T]HH:mm:ss');
-    };
+    }
 
     function f_post_daterange(start, end, callback_) {
         post_daterange = {
@@ -177,7 +177,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                     }
                 );
 
-                if (event.is_schedtask == true)  {  // for the first creation of schedtask
+                if (event.is_schedtask)  {  // for the first creation of schedtask
                     // get the DOM, modify it by inserting the new daterange key (
                     $(event.dom[0]).load(event.dom[1], function() {  // no need async to popup dialog but to modify the DOM before
                         $('#id_many_dateranges').empty().append("<option selected='selected' value="
