@@ -8,6 +8,7 @@ router = routers.DefaultRouter()
 # no regex here
 router.register(r'tasks', views.TaskViewSet, basename='tasks')  # basename for reverse url tags
 router.register(r'dateranges', views.DateRangeViewSet, basename='dateranges')
+router.register(r'events', views.EventViewSet, basename='events')
 
 urlpatterns = [
     # api root path

@@ -1,15 +1,20 @@
 from django.shortcuts import HttpResponse
 from django.template import loader
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
-
+from django.utils import timezone
 from django.urls import reverse_lazy
 
 from agendjang.models import Task, ScheduledTask, DateRange, Tag
 from agendjang.forms import TaskForm, ScheduledTaskForm, TagForm
-from agendjang.serializers import TaskSerializer, DateRangeSerializer
+from agendjang.serializers import TaskSerializer, DateRangeSerializer, EventSerializer
 
 from rest_framework import viewsets
+from rest_framework.response import Response
+
 from markdown import markdown
+
+from datetime import timedelta
+
 
 #######
 # API #
@@ -24,6 +29,26 @@ class TaskViewSet(viewsets.ModelViewSet):
 class DateRangeViewSet(viewsets.ModelViewSet):
     queryset = DateRange.objects.all()
     serializer_class = DateRangeSerializer
+
+
+class EventViewSet(viewsets.ViewSet):
+    def list(self, request):
+        qs = []
+
+        for task in Task.objects.all():
+            for daterange in task.many_dateranges.all():
+                qs.append({
+                    'task_id': task.id,
+                    'id': daterange.pk,
+                    'title': task.name,
+                    'start': daterange.start_date,
+                    'end': daterange.end_date,
+                    'allDay': True if daterange.end_date - daterange.start_date == timedelta(hours=24) else False,
+                    'color': 'red' if (not task.done and timezone.now() > daterange.end_date) else 'green',
+                })
+
+        serializer = EventSerializer(qs, many=True)
+        return Response(serializer.data)
 
 
 #############

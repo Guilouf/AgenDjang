@@ -25,17 +25,6 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
         });
     }
 
-    function too_late_color(date_end_, done) {
-        now = moment().valueOf();  //js timestamp
-
-        if (now > date_end_ && !done) {
-            return "red"
-        }
-        else if (done) {
-            return "green"
-        }
-    }
-
     function django_date(date_) {
         /* Wrapper for moment.js(used by fullcal),
          here the date have always the same format even if hours missing
@@ -76,31 +65,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
             },
         },
 
-
-        // init by django tag the existing tasks with timestamp
-        events: [
-            {% for task in object_list %}
-                {% for daterange in task.many_dateranges.all %}
-                    {
-                        task_id: '{{ task.pk }}',
-                        id: '{{ daterange.pk }}',  // diff id even with repeated event
-                        title: '{{ task.name }}',
-                        // .0 django template list index
-                        start: '{{ daterange.start_date | date:'c'  }}', // iso 8601
-                        end: '{{ daterange.end_date | date:'c'  }}', // iso 8601
-                        // si l'evenement dure 24h, c'est un allday
-                        allDay: moment('{{ daterange.end_date | date:'c'  }}').valueOf()
-                                - moment('{{ daterange.start_date | date:'c'  }}').valueOf() == 86400000 ? true : false,
-                        color: too_late_color(moment('{{ daterange.end_date | date:'c'  }}').valueOf()
-                                              , {{task.done|yesno:"true,false"}}  ),// convertit en bool js
-                                              // backgroundColor aussi
-                    },
-                {% endfor %}
-            {% endfor %}
-        ],
-
-
-
+        events: "{% url 'api:events-list'%}", // fullcalendar handles the call format todo handle timestamps parameters
 
         // when we clic a day..
         dayClick: function(datee) {  // on rajoute comme arg ce que l'on veut recup ds la callback, rien sinon
