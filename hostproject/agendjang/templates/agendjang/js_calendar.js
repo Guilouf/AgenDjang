@@ -65,7 +65,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
             },
         },
 
-        events: "{% url 'api:events-list'%}", // fullcalendar handles the call format todo handle timestamps parameters
+        events: "{% url 'api:events-list'%}", // fullcalendar handles the call format
 
         // when we clic a day..
         dayClick: function(datee) {  // on rajoute comme arg ce que l'on veut recup ds la callback, rien sinon

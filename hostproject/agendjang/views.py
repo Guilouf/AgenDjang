@@ -33,10 +33,14 @@ class DateRangeViewSet(viewsets.ModelViewSet):
 
 class EventViewSet(viewsets.ViewSet):
     def list(self, request):
+
+        start = self.request.query_params.get('start')  # not tz aware, by vary from date to datetime
+        end = self.request.query_params.get('end')
+
         qs = []
 
         for task in Task.objects.all():
-            for daterange in task.many_dateranges.all():
+            for daterange in task.many_dateranges.filter(start_date__gte=start, end_date__lte=end):
                 qs.append({
                     'task_id': task.id,
                     'id': daterange.pk,
