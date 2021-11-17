@@ -52,7 +52,6 @@
                 title: 'pending',
                 is_schedtask: true,  // custom flag from me
                 dom: ['#create_schedtask_dialog', 'create_schedtask'],
-                many_dateranges: [],  //just to not modify code in jscal
                 stick: false});
         </script>
 
@@ -78,7 +77,6 @@
                     $('.{{ schedtask.name }}').data('event', {
                         title: '{{ schedtask.name }}',
                         task_id: '{{ schedtask.pk }}',
-                        many_dateranges: [{% for daterange in schedtask.many_dateranges.all %} {{ daterange.pk }}, {% endfor %}], // moche
                         is_schedtask: false,  // custom flag from me
                         // et pk false ici du coup ??
                         stick: 'true'});
