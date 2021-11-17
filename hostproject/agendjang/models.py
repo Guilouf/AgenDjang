@@ -19,14 +19,11 @@ class Task(models.Model):
     done = models.BooleanField(default=False)
     archive = models.BooleanField(default=False)
     points = models.IntegerField(default=1)
-    # color = models.Col  # django-colorfield pe
 
     many_tags = models.ManyToManyField('Tag', blank=True)
     many_dateranges = models.ManyToManyField('DateRange', blank=True)
 
     objects = TaskManager()
-
-    # todo add subtasks ?
 
     def __str__(self):
         return f"Task {self.name}"
@@ -37,7 +34,6 @@ class ScheduledTask(Task):
     Instanciate new tasks, with its task attributes
     """
 
-    # keep a trace of all instantiated tasks
     many_tasks = models.ManyToManyField('Task', blank=True, related_name="linked_tasks")
 
 
@@ -61,7 +57,6 @@ class DateRange(models.Model):
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
-    # color =
 
     def __str__(self):
         return f"Tag {self.name}"

@@ -36,7 +36,7 @@
         function load_dialog(dom_id, rel_url) {
             $(dom_id).load(rel_url);
             $(dom_id).dialog({width: 'auto'});
-        };
+        }
     </script>
 
     <div id=tags>
@@ -78,7 +78,6 @@
                     $('.{{ schedtask.name }}').data('event', {
                         title: '{{ schedtask.name }}',
                         task_id: '{{ schedtask.pk }}',
-                        sale_pute: 'salope de js',
                         many_dateranges: [{% for daterange in schedtask.many_dateranges.all %} {{ daterange.pk }}, {% endfor %}], // moche
                         is_schedtask: false,  // custom flag from me
                         // et pk false ici du coup ??

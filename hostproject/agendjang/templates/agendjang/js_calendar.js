@@ -35,7 +35,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
     }
 
     function f_post_daterange(start, end, callback_) {
-        post_daterange = {
+        let post_daterange = {
                 // le fait d'avoir une variable fait que c'est plus de json de base
                 start_date: django_date(start),
                 end_date: django_date(end),
@@ -84,13 +84,13 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
         eventClick: function(event) { // on aussi avoir la position de la souris, la vue etc..
             // c'est propre mais c pas de l'ajax, faut reload la page a chaque post..
             // en revanche, ca va bien ac les event init via django template..
-            $('#task_dialog').load("update_task/"+event['task_id']);  // relative url, resolver useless
-            $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
+            $('#task_dialog').load("update_task/"+event['task_id']) // relative url, resolver useless
+                .dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
         },
 
         // when dragndrop finished and datetime changed (internal event dragndrop)
         eventDrop: function(event, delta, revertFunc) {
-            daterange = {  // todo pas de var et shadow naming
+            let daterange = {  // todo pas de var et shadow naming
                 start_date: django_date(event['start']),
                 end_date: django_date(event['end']),
             };
@@ -103,7 +103,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
         // when timestamp resize is finished and time changed
         eventResize: function(event, delta, revertFunc) {
-            daterange = {
+            let daterange = {
                 start_date: django_date(event['start']),
                 end_date: django_date(event['end']),
             };
@@ -126,7 +126,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 event.id = response['id']; // id of event is id of daterange
                 event['many_dateranges'] = event['many_dateranges'].concat([response['id']]);
 
-                task_put = {
+                let task_put = {
                     name: event['title'],
                     many_dateranges: event['many_dateranges'],
                     // fixme le problème c'est que l'objet event ds l'accordeon n'est pas mis a jour tant qu'il

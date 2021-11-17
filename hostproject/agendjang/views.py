@@ -1,6 +1,6 @@
 from django.shortcuts import HttpResponse
 from django.template import loader
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView
 from django.utils import timezone
 from django.urls import reverse_lazy
 
@@ -22,7 +22,7 @@ from datetime import timedelta
 
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()  # don't like, could be taken from name or serializer todo mixin
+    queryset = Task.objects.all()
     serializer_class = TaskSerializer
 
 
@@ -116,7 +116,6 @@ class CalendarView(TemplateView):
 
 class JavascriptCalendarView(ListView):
     model = Task  # listview because i export tasklist in the js calendar as django tags
-    # todo faudrait pouvoir donner une liste de models.. faire une mixin bien classe...
     template_name = 'agendjang/js_calendar.js'
     content_type = 'text/javascript'
 
