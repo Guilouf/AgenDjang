@@ -1,15 +1,20 @@
 from django.shortcuts import HttpResponse
 from django.template import loader
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
-
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView
+from django.utils import timezone
 from django.urls import reverse_lazy
 
 from agendjang.models import Task, ScheduledTask, DateRange, Tag
 from agendjang.forms import TaskForm, ScheduledTaskForm, TagForm
-from agendjang.serializers import TaskSerializer, DateRangeSerializer
+from agendjang.serializers import TaskSerializer, DateRangeSerializer, EventSerializer
 
 from rest_framework import viewsets
+from rest_framework.response import Response
+
 from markdown import markdown
+
+from datetime import timedelta
+
 
 #######
 # API #
@@ -17,13 +22,37 @@ from markdown import markdown
 
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()  # don't like, could be taken from name or serializer todo mixin
+    queryset = Task.objects.all()
     serializer_class = TaskSerializer
 
 
 class DateRangeViewSet(viewsets.ModelViewSet):
     queryset = DateRange.objects.all()
     serializer_class = DateRangeSerializer
+
+
+class EventViewSet(viewsets.ViewSet):
+    def list(self, request):
+
+        start = self.request.query_params.get('start')  # not tz aware, by vary from date to datetime
+        end = self.request.query_params.get('end')
+
+        qs = []
+
+        for task in Task.objects.all():
+            for daterange in task.many_dateranges.filter(start_date__gte=start, end_date__lte=end):
+                qs.append({
+                    'task_id': task.id,
+                    'id': daterange.pk,
+                    'title': task.name,
+                    'start': daterange.start_date,
+                    'end': daterange.end_date,
+                    'allDay': True if daterange.end_date - daterange.start_date == timedelta(hours=24) else False,
+                    'color': 'red' if (not task.done and timezone.now() > daterange.end_date) else 'green',
+                })
+
+        serializer = EventSerializer(qs, many=True)
+        return Response(serializer.data)
 
 
 #############
@@ -91,7 +120,6 @@ class CalendarView(TemplateView):
 
 class JavascriptCalendarView(ListView):
     model = Task  # listview because i export tasklist in the js calendar as django tags
-    # todo faudrait pouvoir donner une liste de models.. faire une mixin bien classe...
     template_name = 'agendjang/js_calendar.js'
     content_type = 'text/javascript'
 

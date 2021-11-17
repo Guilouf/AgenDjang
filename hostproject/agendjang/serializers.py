@@ -1,24 +1,27 @@
-import sys
 from rest_framework import serializers
+from agendjang.models import Task, DateRange
 
 
-module = sys.modules['agendjang.models']
-
-
-def meta_serializer(name, bases, dct):
-    bases += serializers.ModelSerializer,  # append the base class tuple
-
+class TaskSerializer(serializers.ModelSerializer):
     class Meta:
-        model = getattr(module, name)
+        model = Task
         fields = '__all__'
 
-    dct = dict(dct, **{Meta.__name__: Meta})  # merge of the dicts
 
-    return type(f"{name}Serializer", bases, dct)
+class DateRangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DateRange
+        fields = '__all__'
 
 
-SERIALIZERS = ['Task', 'DateRange']  # edit to create new serializers
+class EventSerializer(serializers.Serializer):
+    """Serializer for calendar events displayed in fullcalendar"""
+    task_id = serializers.IntegerField()
+    title = serializers.CharField()
 
-# set the new var
-for serial in SERIALIZERS:  # pas reussi a faire plus classe en intention, c'est plus moche en fait
-    globals()[f'{serial}Serializer'] = meta_serializer(serial, (), {})
+    id = serializers.IntegerField()
+    start = serializers.DateTimeField()
+    end = serializers.DateTimeField()
+
+    allDay = serializers.BooleanField()
+    color = serializers.CharField()

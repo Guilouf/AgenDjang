@@ -12,7 +12,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
             data: JSON.stringify(data_),
             success: callback_,
         });
-    };
+    }
 
     // $.post ajax is somewhat more buggy... even with json flag
     function post(url_, data_, callback_) {
@@ -23,17 +23,6 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
             data: JSON.stringify(data_),
             success: callback_,
         });
-    };
-
-    function too_late_color(date_end_, done) {
-        now = moment().valueOf();  //js timestamp
-
-        if (now > date_end_ && !done) {
-            return "red"
-        }
-        else if (done) {
-            return "green"
-        }
     }
 
     function django_date(date_) {
@@ -43,10 +32,10 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
         'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
         */
         return date_.format('YYYY-MM-DD[T]HH:mm:ss');
-    };
+    }
 
     function f_post_daterange(start, end, callback_) {
-        post_daterange = {
+        let post_daterange = {
                 // le fait d'avoir une variable fait que c'est plus de json de base
                 start_date: django_date(start),
                 end_date: django_date(end),
@@ -76,31 +65,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
             },
         },
 
-
-        // init by django tag the existing tasks with timestamp
-        events: [
-            {% for task in object_list %}
-                {% for daterange in task.many_dateranges.all %}
-                    {
-                        task_id: '{{ task.pk }}',
-                        id: '{{ daterange.pk }}',  // diff id even with repeated event
-                        title: '{{ task.name }}',
-                        // .0 django template list index
-                        start: '{{ daterange.start_date | date:'c'  }}', // iso 8601
-                        end: '{{ daterange.end_date | date:'c'  }}', // iso 8601
-                        // si l'evenement dure 24h, c'est un allday
-                        allDay: moment('{{ daterange.end_date | date:'c'  }}').valueOf()
-                                - moment('{{ daterange.start_date | date:'c'  }}').valueOf() == 86400000 ? true : false,
-                        color: too_late_color(moment('{{ daterange.end_date | date:'c'  }}').valueOf()
-                                              , {{task.done|yesno:"true,false"}}  ),// convertit en bool js
-                                              // backgroundColor aussi
-                    },
-                {% endfor %}
-            {% endfor %}
-        ],
-
-
-
+        events: "{% url 'api:events-list'%}", // fullcalendar handles the call format
 
         // when we clic a day..
         dayClick: function(datee) {  // on rajoute comme arg ce que l'on veut recup ds la callback, rien sinon
@@ -119,13 +84,13 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
         eventClick: function(event) { // on aussi avoir la position de la souris, la vue etc..
             // c'est propre mais c pas de l'ajax, faut reload la page a chaque post..
             // en revanche, ca va bien ac les event init via django template..
-            $('#task_dialog').load("update_task/"+event['task_id']);  // relative url, resolver useless
-            $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
+            $('#task_dialog').load("update_task/"+event['task_id']) // relative url, resolver useless
+                .dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
         },
 
         // when dragndrop finished and datetime changed (internal event dragndrop)
         eventDrop: function(event, delta, revertFunc) {
-            daterange = {  // todo pas de var et shadow naming
+            let daterange = {  // todo pas de var et shadow naming
                 start_date: django_date(event['start']),
                 end_date: django_date(event['end']),
             };
@@ -138,7 +103,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
         // when timestamp resize is finished and time changed
         eventResize: function(event, delta, revertFunc) {
-            daterange = {
+            let daterange = {
                 start_date: django_date(event['start']),
                 end_date: django_date(event['end']),
             };
@@ -161,7 +126,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                 event.id = response['id']; // id of event is id of daterange
                 event['many_dateranges'] = event['many_dateranges'].concat([response['id']]);
 
-                task_put = {
+                let task_put = {
                     name: event['title'],
                     many_dateranges: event['many_dateranges'],
                     // fixme le problème c'est que l'objet event ds l'accordeon n'est pas mis a jour tant qu'il
@@ -177,7 +142,7 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
                     }
                 );
 
-                if (event.is_schedtask == true)  {  // for the first creation of schedtask
+                if (event.is_schedtask)  {  // for the first creation of schedtask
                     // get the DOM, modify it by inserting the new daterange key (
                     $(event.dom[0]).load(event.dom[1], function() {  // no need async to popup dialog but to modify the DOM before
                         $('#id_many_dateranges').empty().append("<option selected='selected' value="
