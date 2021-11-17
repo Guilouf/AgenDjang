@@ -34,13 +34,28 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
         return date_.format('YYYY-MM-DD[T]HH:mm:ss');
     }
 
-    function f_post_daterange(start, end, callback_) {
+    function f_post_daterange(start, end, task_id, callback_) {
         let post_daterange = {
                 // le fait d'avoir une variable fait que c'est plus de json de base
                 start_date: django_date(start),
                 end_date: django_date(end),
+                task: task_id,
             };
         post("{% url 'api:dateranges-list'%}", post_daterange, callback_)
+    }
+
+    function put_daterange(event) {
+        /*Modyfy daterange according to event data*/
+        let daterange = {
+            start_date: django_date(event['start']),
+            end_date: django_date(event['end']),
+            task: event['task_id'],
+        };
+
+        // jquery .put doesnt exist.. put wrapper
+        put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
+            function(data) {}
+        );
     }
 
     //load the accordiion UI for the accord class
@@ -90,28 +105,12 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
 
         // when dragndrop finished and datetime changed (internal event dragndrop)
         eventDrop: function(event, delta, revertFunc) {
-            let daterange = {  // todo pas de var et shadow naming
-                start_date: django_date(event['start']),
-                end_date: django_date(event['end']),
-            };
-
-            // jquery .put doesnt exist.. put wrapper
-            put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
-                function(data) {}
-            );
+            put_daterange(event)
         },
 
         // when timestamp resize is finished and time changed
         eventResize: function(event, delta, revertFunc) {
-            let daterange = {
-                start_date: django_date(event['start']),
-                end_date: django_date(event['end']),
-            };
-
-
-            put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
-            function(data) {}
-            );
+            put_daterange(event)
         },
 
         drop: function(date) {
@@ -121,26 +120,11 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
         // drop callback only for low level drop data, this gets the external dropped event
         eventReceive: function(event, view) {
 
+            // fixme shedtask broken because not initialized with task_id
             // post a new daterange, but if form is cancelled it's keeped in db
-            f_post_daterange(event.start, event.end, function(response) {
+            f_post_daterange(event.start, event.end, event.task_id, function(response) {
                 event.id = response['id']; // id of event is id of daterange
-                event['many_dateranges'] = event['many_dateranges'].concat([response['id']]);
-
-                let task_put = {
-                    name: event['title'],
-                    many_dateranges: event['many_dateranges'],
-                    // fixme le problème c'est que l'objet event ds l'accordeon n'est pas mis a jour tant qu'il
-                    //n'y a pas de refresh'
-                    // du coup on peut pas ajouter plusieurs daterange d'une mm task en une seule fois
-                    // ajoute à la liste des pk de daterange la daterange fraichement postée
-                };
-
-                // associe la nouvelle daterange à la task existante
-                put("{% url 'api:tasks-list'%}"+event['task_id']+'/', task_put,
-                    function(data) {
-                        $('#calendar').fullCalendar('updateEvent', event); // here all async modif are commited
-                    }
-                );
+                $('#calendar').fullCalendar('updateEvent', event);
 
                 if (event.is_schedtask)  {  // for the first creation of schedtask
                     // get the DOM, modify it by inserting the new daterange key (
