@@ -22,6 +22,15 @@ function post(url_, data_, callback_) {
     });
 }
 
+function remove(url_, callback_) {
+    $.ajax({
+        url: url_,
+        type: 'DELETE',
+        contentType: 'application/json',
+        success: callback_,
+    });
+}
+
 function django_date(date_) {
     /* Wrapper for moment.js(used by fullcal),
      here the date have always the same format even if hours missing
@@ -51,6 +60,12 @@ function put_daterange(event) {
 
     // jquery .put doesnt exist.. put wrapper
     put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
+        function(data) {}
+    );
+}
+
+function deleteDateRange(dateRangeId) {
+    remove("{% url 'api:dateranges-list'%}"+dateRangeId+'/',
         function(data) {}
     );
 }
@@ -119,7 +134,19 @@ $(document).ready(function() {  // called when page completly loaded
         eventClick: function(event) { // on aussi avoir la position de la souris, la vue etc..
             // c'est propre mais c pas de l'ajax, faut reload la page a chaque post..
             // en revanche, ca va bien ac les event init via django template..
-            $('#task_dialog').load("update_task/"+event['task_id']) // relative url, resolver useless
+            $('#task_dialog')
+                // callback called when pressing dialog unlink date button
+                .data('deleteDate', function () {
+                    deleteDateRange(event.id)  // remove event in db
+                    $("#calendar").fullCalendar('removeEvents', event.id);  // rm event in calendar
+                    $('#task_dialog').dialog('close') // closes dialog
+                })
+                .load("update_task/"+event['task_id'], function () {
+                    // add unlink button to dialog
+                    $('#task_dialog')
+                        .append("<input type=\"button\" value=\"Unlink the date\"" +
+                            " onclick=\"$(\'#task_dialog\').data(\'deleteDate\')()\" />")
+                }) // relative url, resolver useless
                 .dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
         },
 
