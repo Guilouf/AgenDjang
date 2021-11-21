@@ -1,62 +1,81 @@
 // template dynamic js, why not,
-$(document).ready(function() {  // called when page completly loaded fixme for external loaded html ??
+
+// wrapper for ajax put
+function put(url_, data_, callback_) {
+    $.ajax({
+        url: url_,  // leave trailing /
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data_),
+        success: callback_,
+    });
+}
+
+// $.post ajax is somewhat more buggy... even with json flag
+function post(url_, data_, callback_) {
+    $.ajax({
+        url: url_,  // leave trailing /
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data_),
+        success: callback_,
+    });
+}
+
+function django_date(date_) {
+    /* Wrapper for moment.js(used by fullcal),
+     here the date have always the same format even if hours missing
+    => 2017-11-28T13:00:00
+    'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
+    */
+    return date_.format('YYYY-MM-DD[T]HH:mm:ss');
+}
+
+function f_post_daterange(start, end, task_id, callback_) {
+    let post_daterange = {
+            // le fait d'avoir une variable fait que c'est plus de json de base
+            start_date: django_date(start),
+            end_date: django_date(end),
+            task: task_id,
+        };
+    post("{% url 'api:dateranges-list'%}", post_daterange, callback_)
+}
+
+function put_daterange(event) {
+    /*Modyfy daterange according to event data*/
+    let daterange = {
+        start_date: django_date(event['start']),
+        end_date: django_date(event['end']),
+        task: event['task_id'],
+    };
+
+    // jquery .put doesnt exist.. put wrapper
+    put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
+        function(data) {}
+    );
+}
+
+function postTaskFormData(datee) {
+    let formData = new FormData(document.querySelector('form'))
+
+    let xhr = new XMLHttpRequest();
+    xhr.responseType = 'json';  // allow to convert formData to json automatically
+    xhr.onreadystatechange = function() {  // callback
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+        let task_id = xhr.response.id
+            // call function defined in parent window
+            window.parent.f_post_daterange(datee, datee, task_id, function(response) {
+                location.reload()  // refresh page
+            })
+        }
+    }
+    xhr.open("POST", "{% url 'api:tasks-list' %}");
+    xhr.send(formData)
+}
+
+$(document).ready(function() {  // called when page completly loaded
 
     // helper: view-source:https://fullcalendar.io/js/fullcalendar-3.7.0/demos/agenda-views.html
-
-    // wrapper for ajax put
-    function put(url_, data_, callback_) {
-        $.ajax({
-            url: url_,  // leave trailing /
-            type: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify(data_),
-            success: callback_,
-        });
-    }
-
-    // $.post ajax is somewhat more buggy... even with json flag
-    function post(url_, data_, callback_) {
-        $.ajax({
-            url: url_,  // leave trailing /
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data_),
-            success: callback_,
-        });
-    }
-
-    function django_date(date_) {
-        /* Wrapper for moment.js(used by fullcal),
-         here the date have always the same format even if hours missing
-        => 2017-11-28T13:00:00
-        'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
-        */
-        return date_.format('YYYY-MM-DD[T]HH:mm:ss');
-    }
-
-    function f_post_daterange(start, end, task_id, callback_) {
-        let post_daterange = {
-                // le fait d'avoir une variable fait que c'est plus de json de base
-                start_date: django_date(start),
-                end_date: django_date(end),
-                task: task_id,
-            };
-        post("{% url 'api:dateranges-list'%}", post_daterange, callback_)
-    }
-
-    function put_daterange(event) {
-        /*Modyfy daterange according to event data*/
-        let daterange = {
-            start_date: django_date(event['start']),
-            end_date: django_date(event['end']),
-            task: event['task_id'],
-        };
-
-        // jquery .put doesnt exist.. put wrapper
-        put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
-            function(data) {}
-        );
-    }
 
     //load the accordiion UI for the accord class
     $(".accord").accordion({ collapsible: true, active: false }); // keep open multiple sections
@@ -85,13 +104,14 @@ $(document).ready(function() {  // called when page completly loaded fixme for e
         // when we clic a day..
         dayClick: function(datee) {  // on rajoute comme arg ce que l'on veut recup ds la callback, rien sinon
 
-            f_post_daterange(datee, datee, function(response) {
-                $('#task_dialog').load("create_task", function() { // relative url, resolver useless
-                    $('#id_many_dateranges').empty().append("<option selected='selected' value="
-                     + response['id'] + ">  La bonne date </option>");  // modify form to auto add the daterange
-                    $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
-                });
-            })
+            $('#task_dialog').data('ajaxCall', function (){postTaskFormData(datee)}).load("create_task", function() { // relative url, resolver useless
+                $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
+                // modify input button to send AJAX request
+                $('#task_input')
+                    .attr('onclick', '$(\'#task_dialog\').data(\'ajaxCall\')()')
+                    .attr('type', 'button')
+                    .val('SubmitAjax')  // rename field
+            });
         },
 
 
