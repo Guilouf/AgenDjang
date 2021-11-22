@@ -27,10 +27,6 @@ urlpatterns = [
     path('tasks', views.TaskList.as_view(), name='list_task'),
     path('tasks/<int:pk>', views.TaskDetail.as_view(), name='detail_task'),
 
-    # ScheduledTasks
-    path('create_schedtask', views.ScheduledTaskCreate.as_view(), name='create_schedtask'),
-    path('update_schedtask/<int:pk>', views.ScheduledTaskUpdate.as_view(), name='update_schedtask'),
-
     # Tags
     path('create_tag', views.TagCreate.as_view(), name='create_tag'),
     path('update_tag/<int:pk>', views.TagUpdate.as_view(), name='update_tag'),

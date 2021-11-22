@@ -4,8 +4,8 @@ from django.views.generic import TemplateView, ListView, DetailView, CreateView,
 from django.utils import timezone
 from django.urls import reverse_lazy
 
-from agendjang.models import Task, ScheduledTask, DateRange, Tag
-from agendjang.forms import TaskForm, ScheduledTaskForm, TagForm
+from agendjang.models import Task, DateRange, Tag
+from agendjang.forms import TaskForm, TagForm
 from agendjang.serializers import TaskSerializer, DateRangeSerializer, EventSerializer
 
 from rest_framework import viewsets
@@ -84,18 +84,6 @@ class TaskDetail(DetailView):
     model = Task
 
 
-class ScheduledTaskCreate(CreateView):
-    model = ScheduledTask
-    form_class = ScheduledTaskForm
-    success_url = reverse_lazy('view_calendar')
-
-
-class ScheduledTaskUpdate(UpdateView):
-    model = ScheduledTask
-    form_class = ScheduledTaskForm
-    success_url = reverse_lazy('view_calendar')
-
-
 class TagCreate(CreateView):
     model = Tag
     form_class = TagForm
@@ -114,7 +102,6 @@ class CalendarView(TemplateView):
     def get_context_data(self, **kwargs):  # adds the tag_list template tag, along object_list
         ctx = super().get_context_data(**kwargs)
         ctx['tag_list'] = Tag.objects.all()
-        ctx['schedtask_list'] = ScheduledTask.objects.all()
         return ctx
 
 

@@ -167,20 +167,10 @@ $(document).ready(function() {  // called when page completly loaded
         // drop callback only for low level drop data, this gets the external dropped event
         eventReceive: function(event, view) {
 
-            // fixme shedtask broken because not initialized with task_id
             // post a new daterange, but if form is cancelled it's keeped in db
             f_post_daterange(event.start, event.end, event.task_id, function(response) {
                 event.id = response['id']; // id of event is id of daterange
                 $('#calendar').fullCalendar('updateEvent', event);
-
-                if (event.is_schedtask)  {  // for the first creation of schedtask
-                    // get the DOM, modify it by inserting the new daterange key (
-                    $(event.dom[0]).load(event.dom[1], function() {  // no need async to popup dialog but to modify the DOM before
-                        $('#id_many_dateranges').empty().append("<option selected='selected' value="
-                         + event.many_dateranges + ">  La bonne date </option>");  // modify form to auto add the daterange
-                        $(event.dom[0]).dialog({width: 'auto'});  // load pop up
-                    });
-                }
             });
         },
 
