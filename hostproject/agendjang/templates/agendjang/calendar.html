@@ -45,54 +45,10 @@
         <button id="btn_create_tag" type="button"
                 onclick="load_dialog('#create_tag_dialog', 'create_tag')">New tag</button>
 
-        <div id='create_schedtask_dialog' title="Create SchedTask" class="task_div">  Drop to create scheduled Task
-        </div>
-        <script>
-            $('#create_schedtask_dialog').data('event', {
-                title: 'pending',
-                is_schedtask: true,  // custom flag from me
-                dom: ['#create_schedtask_dialog', 'create_schedtask'],
-                stick: false});
-        </script>
-
-        <!--fixme c'est dégeulasse faut trouver un autre moyen que cet immonde copié collé; utiliser heritage template ?-->
-         <div id="Scheduled_tasks" class="accord" >
-
-            <h3>Scheduled tasks</h3>
-
-            <div>
-
-            {% for schedtask in schedtask_list %}
-                <!--plusieurs classes separées par des espaces-->
-                <div class="task_div {{ schedtask.name }}"> {{ schedtask.name }}
-
-                    <div id='edit_schedtask_dialog' title="Edit Schedtask" style="display: none;"></div>
-                        <button id="btn_edit_schedtask" type="button"
-                                onclick="load_dialog('#edit_schedtask_dialog', 'update_schedtask/{{schedtask.pk}}' )">EDIT</button>
-                </div>
-
-                <!--lorsque la schedtask est associées à un autre tag, l'id se fait ecraser par le script d'en dessous-->
-                <!--du coup j'ai mis le name (unique) en identifiant de div-->
-                <script>
-                    $('.{{ schedtask.name }}').data('event', {
-                        title: '{{ schedtask.name }}',
-                        task_id: '{{ schedtask.pk }}',
-                        is_schedtask: false,  // custom flag from me
-                        // et pk false ici du coup ??
-                        stick: 'true'});
-                </script>
-
-            {% endfor %}
-
-            </div>
-        </div>
-
-
     {% for tag in tag_list %}
         <div id="{{ tag.name }}" class="accord" >
 
             <h3>{{ tag.name }}</h3>
-
 
             <div>
             <!--div necessaire pour contenir les task et présenter l'accordeon-->
@@ -120,7 +76,6 @@
                             title: '{{ task.name }}',
                             task_id: '{{ task.pk }}',
                             many_dateranges: [{% for daterange in task.many_dateranges.all %} {{ daterange.pk }}, {% endfor %}], // moche
-                            is_schedtask: false,  // custom flag from me
                             stick: true});
                     </script>
                 {% endif %}

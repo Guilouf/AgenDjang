@@ -1,9 +1,0 @@
-<form action="{{ request.path }}" method="post" enctype="multipart/form-data">
-    <!--request.path because when called from a different url-->
-    <table>
-        {% csrf_token %}
-        {{ form.as_table }}
-    </table>
-
-    <input type="submit" value="Submit" />
-</form>

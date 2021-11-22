@@ -26,14 +26,6 @@ class Task(models.Model):
         return f"Task {self.name}"
 
 
-class ScheduledTask(Task):
-    """
-    Instanciate new tasks, with its task attributes
-    """
-
-    many_tasks = models.ManyToManyField('Task', blank=True, related_name="linked_tasks")
-
-
 class DateRange(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
