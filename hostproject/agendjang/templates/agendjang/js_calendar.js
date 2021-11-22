@@ -152,6 +152,11 @@ $(document).ready(function() {  // called when page completly loaded
 
         // when dragndrop finished and datetime changed (internal event dragndrop)
         eventDrop: function(event, delta, revertFunc) {
+            if (event.allDay) {  // in our data model, an event is considerer all day if it last 24hours
+                // in fullcalendar, an allDay event just takes into account "start" and "allDay=true"
+                event.end = new moment(event.start)
+                event.end.add(1, 'days')
+            }
             put_daterange(event)
         },
 
