@@ -102,6 +102,13 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Disable CSRF verification when admin is logged in
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
