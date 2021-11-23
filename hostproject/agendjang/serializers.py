@@ -16,7 +16,7 @@ class DateRangeSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.Serializer):
     """Serializer for calendar events displayed in fullcalendar"""
-    task_id = serializers.IntegerField()
+    taskId = serializers.IntegerField()
     title = serializers.CharField()
 
     id = serializers.IntegerField()

@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Agendjang</title>
     {% load static %}
     <link rel='stylesheet' href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.6.1/fullcalendar.css" />
-    <!-- fixme Manque les images si on met en local-->
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel='stylesheet' href="{% static 'css/impose_ton_style.css' %}" />
 
@@ -22,7 +21,7 @@
 <footer>
     <div id='help_page' title="Help Page" style="display: none;"></div>
     <button id="btn_help" type="button"
-            onclick="load_dialog('#help_page', 'help')">Help</button>
+            onclick="loadDialog('#help_page', 'help')">Help</button>
 </footer>
 
 <body>
@@ -33,9 +32,9 @@
 
     <!--loads dialog into a hidden div with content from another url-->
     <script>
-        function load_dialog(dom_id, rel_url) {
-            $(dom_id).load(rel_url);
-            $(dom_id).dialog({width: 'auto'});
+        function loadDialog(domId, relUrl) {
+            $(domId).load(relUrl);
+            $(domId).dialog({width: 'auto'});
         }
     </script>
 
@@ -43,7 +42,7 @@
 
         <div id='create_tag_dialog' title="Create tag" style="display: none;"></div>
         <button id="btn_create_tag" type="button"
-                onclick="load_dialog('#create_tag_dialog', 'create_tag')">New tag</button>
+                onclick="loadDialog('#create_tag_dialog', 'create_tag')">New tag</button>
 
     {% for tag in tag_list %}
         <div id="{{ tag.name }}" class="accord" >
@@ -51,31 +50,25 @@
             <h3>{{ tag.name }}</h3>
 
             <div>
-            <!--div necessaire pour contenir les task et présenter l'accordeon-->
-            <!--le drag n drop jquery ne marche pas entre les différentes frames
-            du coup il faudrait utiliser le drag n drop html5 ou faire tt dans la mm frame
-            les données associées peuvent être passées en html(data-event), mais la div doit etre passée en draggable
-            par jquery-->
+            <!--necessary div to contain tasks into accordion-->
                 <div id='modify_tag_dialog' title="Modify tag" style="display: none;"></div>
                 <button id="btn_modify_tag" type="button"
-                        onclick="load_dialog('#modify_tag_dialog', 'update_tag/{{tag.pk}}')">Modify tag</button>
+                        onclick="loadDialog('#modify_tag_dialog', 'update_tag/{{tag.pk}}')">Modify tag</button>
 
             {% for task in tag.task_set.all %}
                 {% if not task.done %}
-                    <!--plusieurs classes separées par des espaces-->
+                    <!--several classes split with spaces-->
                     <div class="task_div {{ task.pk }}"> {{ task.name }}
 
                         <div id='edit_task_dialog' title="Edit task" style="display: none;"></div>
                             <button id="btn_edit_task" type="button"
-                                    onclick="load_dialog('#edit_task_dialog', 'update_task/{{task.pk}}' )">EDIT</button>
+                                    onclick="loadDialog('#edit_task_dialog', 'update_task/{{task.pk}}' )">EDIT</button>
                     </div>
 
-                    <!--fixme c'est assez mauvais ca fait des copiés collés du code dans la page..=> un tableau ?-->
                     <script>
                         $('.{{ task.pk }}').data('event', {
                             title: '{{ task.name }}',
-                            task_id: '{{ task.pk }}',
-                            many_dateranges: [{% for daterange in task.many_dateranges.all %} {{ daterange.pk }}, {% endfor %}], // moche
+                            taskId: '{{ task.pk }}',
                             stick: true});
                     </script>
                 {% endif %}
@@ -86,18 +79,16 @@
         </div>
     {% endfor %}
 
-        <!--rend draggable les task-->
+        <!--makes tasks draggable-->
          <script>
              $('.task_div').draggable({
                  revert: true,      // immediately snap back to original position
-                 revertDuration: 8,  //le temps que ca met a revenir. reviens mm quand succès, et succes que qd reviens..
+                 revertDuration: 8,  // time to snap back
                  helper: "clone",  // correct zindex of draggable element, dunno how
              });
          </script>
 
     </div>
-
-
 
 </body>
 

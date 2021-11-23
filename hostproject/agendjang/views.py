@@ -1,6 +1,6 @@
 from django.shortcuts import HttpResponse
 from django.template import loader
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView
+from django.views.generic import TemplateView, ListView, CreateView, UpdateView
 from django.utils import timezone
 from django.urls import reverse_lazy
 
@@ -34,7 +34,7 @@ class DateRangeViewSet(viewsets.ModelViewSet):
 class EventViewSet(viewsets.ViewSet):
     def list(self, request):
 
-        start = self.request.query_params.get('start')  # not tz aware, by vary from date to datetime
+        start = self.request.query_params.get('start')  # not tz aware, because vary from date to datetime
         end = self.request.query_params.get('end')
 
         qs = []
@@ -42,7 +42,7 @@ class EventViewSet(viewsets.ViewSet):
         for task in Task.objects.all():
             for daterange in task.daterange_set.filter(start_date__gte=start, end_date__lte=end):
                 qs.append({
-                    'task_id': task.id,
+                    'taskId': task.id,
                     'id': daterange.pk,
                     'title': task.name,
                     'start': daterange.start_date,
@@ -60,7 +60,7 @@ class EventViewSet(viewsets.ViewSet):
 #############
 
 def help_view(request):
-    """read a markdown help file and convert it to html"""
+    """Read a markdown help file and convert it to html"""
     return HttpResponse(markdown(loader.render_to_string('agendjang/help.md')))
 
 
@@ -74,14 +74,6 @@ class TaskUpdate(UpdateView):
     model = Task
     form_class = TaskForm
     success_url = reverse_lazy('view_calendar')
-
-
-class TaskList(ListView):
-    model = Task
-
-
-class TaskDetail(DetailView):
-    model = Task
 
 
 class TagCreate(CreateView):
@@ -106,7 +98,7 @@ class CalendarView(TemplateView):
 
 
 class JavascriptCalendarView(ListView):
-    model = Task  # listview because i export tasklist in the js calendar as django tags
+    model = Task  # ListView because i export TaskList in the js calendar as django tags
     template_name = 'agendjang/js_calendar.js'
     content_type = 'text/javascript'
 

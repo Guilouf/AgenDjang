@@ -1,65 +1,64 @@
 // template dynamic js, why not,
 
 // wrapper for ajax put
-function put(url_, data_, callback_) {
+function put(url, data, callback) {
     $.ajax({
-        url: url_,  // leave trailing /
+        url: url,  // leave trailing /
         type: 'PUT',
         contentType: 'application/json',
-        data: JSON.stringify(data_),
-        success: callback_,
+        data: JSON.stringify(data),
+        success: callback,
     });
 }
 
 // $.post ajax is somewhat more buggy... even with json flag
-function post(url_, data_, callback_) {
+function post(url, data, callback) {
     $.ajax({
-        url: url_,  // leave trailing /
+        url: url,  // leave trailing /
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify(data_),
-        success: callback_,
+        data: JSON.stringify(data),
+        success: callback,
     });
 }
 
-function remove(url_, callback_) {
+function remove(url, callback) {
     $.ajax({
-        url: url_,
+        url: url,
         type: 'DELETE',
         contentType: 'application/json',
-        success: callback_,
+        success: callback,
     });
 }
 
-function django_date(date_) {
+function djangoDate(date) {
     /* Wrapper for moment.js(used by fullcal),
      here the date have always the same format even if hours missing
     => 2017-11-28T13:00:00
     'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
     */
-    return date_.format('YYYY-MM-DD[T]HH:mm:ss');
+    return date.format('YYYY-MM-DD[T]HH:mm:ss');
 }
 
-function f_post_daterange(start, end, task_id, callback_) {
-    let post_daterange = {
-            // le fait d'avoir une variable fait que c'est plus de json de base
-            start_date: django_date(start),
-            end_date: django_date(end),
-            task: task_id,
+function postDaterange(start, end, taskId, callback) {
+    let postDateRange = {
+            start_date: djangoDate(start),
+            end_date: djangoDate(end),
+            task: taskId,
         };
-    post("{% url 'api:dateranges-list'%}", post_daterange, callback_)
+    post("{% url 'api:dateranges-list'%}", postDateRange, callback)
 }
 
-function put_daterange(event) {
+function putDaterange(event) {
     /*Modyfy daterange according to event data*/
     let daterange = {
-        start_date: django_date(event['start']),
-        end_date: django_date(event['end']),
-        task: event['task_id'],
+        start_date: djangoDate(event.start),
+        end_date: djangoDate(event.end),
+        task: event.taskId,
     };
 
     // jquery .put doesnt exist.. put wrapper
-    put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
+    put("{% url 'api:dateranges-list'%}"+event.id+'/', daterange,
         function(data) {}
     );
 }
@@ -70,16 +69,16 @@ function deleteDateRange(dateRangeId) {
     );
 }
 
-function postTaskFormData(datee) {
+function postTaskFormData(date) {
     let formData = new FormData(document.querySelector('form'))
 
     let xhr = new XMLHttpRequest();
     xhr.responseType = 'json';  // allow to convert formData to json automatically
     xhr.onreadystatechange = function() {  // callback
     if (xhr.readyState === XMLHttpRequest.DONE) {
-        let task_id = xhr.response.id
+        let taskId = xhr.response.id
             // call function defined in parent window
-            window.parent.f_post_daterange(datee, datee, task_id, function(response) {
+            window.parent.postDaterange(date, date, taskId, function(response) {
                 location.reload()  // refresh page
             })
         }
@@ -88,15 +87,12 @@ function postTaskFormData(datee) {
     xhr.send(formData)
 }
 
-$(document).ready(function() {  // called when page completly loaded
-
-    // helper: view-source:https://fullcalendar.io/js/fullcalendar-3.7.0/demos/agenda-views.html
+$(document).ready(function() {  // called when page is completely loaded
 
     //load the accordiion UI for the accord class
     $(".accord").accordion({ collapsible: true, active: false }); // keep open multiple sections
 
     $('#calendar').fullCalendar({
-        // put your options and callbacks here
         editable: true,  // event on the calendar can be modified
         droppable: true, // allow external event drop
         forceEventDuration: true, // if not all day and no end date, create default end date
@@ -110,16 +106,15 @@ $(document).ready(function() {  // called when page completly loaded
         },
         views: { // like general option, but only apply to specific views
             week: {
-                columnFormat: 'ddd D/M', //overides also for month view
+                columnFormat: 'ddd D/M', // overrides also for month view
             },
         },
 
         events: "{% url 'api:events-list'%}", // fullcalendar handles the call format
 
-        // when we clic a day..
-        dayClick: function(datee) {  // on rajoute comme arg ce que l'on veut recup ds la callback, rien sinon
+        dayClick: function(dayDate) {
 
-            $('#task_dialog').data('ajaxCall', function (){postTaskFormData(datee)}).load("create_task", function() { // relative url, resolver useless
+            $('#task_dialog').data('ajaxCall', function (){postTaskFormData(dayDate)}).load("create_task", function() { // relative url, resolver useless
                 $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
                 // modify input button to send AJAX request
                 $('#task_input')
@@ -129,11 +124,7 @@ $(document).ready(function() {  // called when page completly loaded
             });
         },
 
-
-        // quand on clique sur un event..
-        eventClick: function(event) { // on aussi avoir la position de la souris, la vue etc..
-            // c'est propre mais c pas de l'ajax, faut reload la page a chaque post..
-            // en revanche, ca va bien ac les event init via django template..
+        eventClick: function(event) {
             $('#task_dialog')
                 // callback called when pressing dialog unlink date button
                 .data('deleteDate', function () {
@@ -141,7 +132,7 @@ $(document).ready(function() {  // called when page completly loaded
                     $("#calendar").fullCalendar('removeEvents', event.id);  // rm event in calendar
                     $('#task_dialog').dialog('close') // closes dialog
                 })
-                .load("update_task/"+event['task_id'], function () {
+                .load("update_task/"+event.taskId, function () {
                     // add unlink button to dialog
                     $('#task_dialog')
                         .append("<input type=\"button\" value=\"Unlink the date\"" +
@@ -152,29 +143,25 @@ $(document).ready(function() {  // called when page completly loaded
 
         // when dragndrop finished and datetime changed (internal event dragndrop)
         eventDrop: function(event, delta, revertFunc) {
-            if (event.allDay) {  // in our data model, an event is considerer all day if it last 24hours
+            if (event.allDay) {  // in our data model, an event is considered all day if it last 24hours
                 // in fullcalendar, an allDay event just takes into account "start" and "allDay=true"
                 event.end = new moment(event.start)
                 event.end.add(1, 'days')
             }
-            put_daterange(event)
+            putDaterange(event)
         },
 
         // when timestamp resize is finished and time changed
         eventResize: function(event, delta, revertFunc) {
-            put_daterange(event)
-        },
-
-        drop: function(date) {
-            // for low level data callback of external drop, not usefull. called before event receive
+            putDaterange(event)
         },
 
         // drop callback only for low level drop data, this gets the external dropped event
         eventReceive: function(event, view) {
 
             // post a new daterange, but if form is cancelled it's keeped in db
-            f_post_daterange(event.start, event.end, event.task_id, function(response) {
-                event.id = response['id']; // id of event is id of daterange
+            postDaterange(event.start, event.end, event.taskId, function(response) {
+                event.id = response.id; // id of event is id of daterange
                 $('#calendar').fullCalendar('updateEvent', event);
             });
         },
