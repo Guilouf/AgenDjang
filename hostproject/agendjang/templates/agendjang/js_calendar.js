@@ -31,7 +31,7 @@ function remove(url_, callback_) {
     });
 }
 
-function django_date(date_) {
+function djangoDate(date_) {
     /* Wrapper for moment.js(used by fullcal),
      here the date have always the same format even if hours missing
     => 2017-11-28T13:00:00
@@ -40,20 +40,20 @@ function django_date(date_) {
     return date_.format('YYYY-MM-DD[T]HH:mm:ss');
 }
 
-function f_post_daterange(start, end, taskId, callback_) {
-    let post_daterange = {
-            start_date: django_date(start),
-            end_date: django_date(end),
+function postDaterange(start, end, taskId, callback_) {
+    let postDateRange = {
+            start_date: djangoDate(start),
+            end_date: djangoDate(end),
             task: taskId,
         };
-    post("{% url 'api:dateranges-list'%}", post_daterange, callback_)
+    post("{% url 'api:dateranges-list'%}", postDateRange, callback_)
 }
 
-function put_daterange(event) {
+function putDaterange(event) {
     /*Modyfy daterange according to event data*/
     let daterange = {
-        start_date: django_date(event.start),
-        end_date: django_date(event.end),
+        start_date: djangoDate(event.start),
+        end_date: djangoDate(event.end),
         task: event.taskId,
     };
 
@@ -78,7 +78,7 @@ function postTaskFormData(date) {
     if (xhr.readyState === XMLHttpRequest.DONE) {
         let taskId = xhr.response.id
             // call function defined in parent window
-            window.parent.f_post_daterange(date, date, taskId, function(response) {
+            window.parent.postDaterange(date, date, taskId, function(response) {
                 location.reload()  // refresh page
             })
         }
@@ -148,19 +148,19 @@ $(document).ready(function() {  // called when page is completely loaded
                 event.end = new moment(event.start)
                 event.end.add(1, 'days')
             }
-            put_daterange(event)
+            putDaterange(event)
         },
 
         // when timestamp resize is finished and time changed
         eventResize: function(event, delta, revertFunc) {
-            put_daterange(event)
+            putDaterange(event)
         },
 
         // drop callback only for low level drop data, this gets the external dropped event
         eventReceive: function(event, view) {
 
             // post a new daterange, but if form is cancelled it's keeped in db
-            f_post_daterange(event.start, event.end, event.taskId, function(response) {
+            postDaterange(event.start, event.end, event.taskId, function(response) {
                 event.id = response.id; // id of event is id of daterange
                 $('#calendar').fullCalendar('updateEvent', event);
             });
