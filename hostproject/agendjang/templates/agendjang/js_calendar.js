@@ -1,52 +1,52 @@
 // template dynamic js, why not,
 
 // wrapper for ajax put
-function put(url_, data_, callback_) {
+function put(url, data, callback) {
     $.ajax({
-        url: url_,  // leave trailing /
+        url: url,  // leave trailing /
         type: 'PUT',
         contentType: 'application/json',
-        data: JSON.stringify(data_),
-        success: callback_,
+        data: JSON.stringify(data),
+        success: callback,
     });
 }
 
 // $.post ajax is somewhat more buggy... even with json flag
-function post(url_, data_, callback_) {
+function post(url, data, callback) {
     $.ajax({
-        url: url_,  // leave trailing /
+        url: url,  // leave trailing /
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify(data_),
-        success: callback_,
+        data: JSON.stringify(data),
+        success: callback,
     });
 }
 
-function remove(url_, callback_) {
+function remove(url, callback) {
     $.ajax({
-        url: url_,
+        url: url,
         type: 'DELETE',
         contentType: 'application/json',
-        success: callback_,
+        success: callback,
     });
 }
 
-function djangoDate(date_) {
+function djangoDate(date) {
     /* Wrapper for moment.js(used by fullcal),
      here the date have always the same format even if hours missing
     => 2017-11-28T13:00:00
     'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
     */
-    return date_.format('YYYY-MM-DD[T]HH:mm:ss');
+    return date.format('YYYY-MM-DD[T]HH:mm:ss');
 }
 
-function postDaterange(start, end, taskId, callback_) {
+function postDaterange(start, end, taskId, callback) {
     let postDateRange = {
             start_date: djangoDate(start),
             end_date: djangoDate(end),
             task: taskId,
         };
-    post("{% url 'api:dateranges-list'%}", postDateRange, callback_)
+    post("{% url 'api:dateranges-list'%}", postDateRange, callback)
 }
 
 function putDaterange(event) {
