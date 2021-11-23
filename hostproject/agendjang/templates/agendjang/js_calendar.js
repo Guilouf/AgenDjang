@@ -40,11 +40,11 @@ function django_date(date_) {
     return date_.format('YYYY-MM-DD[T]HH:mm:ss');
 }
 
-function f_post_daterange(start, end, task_id, callback_) {
+function f_post_daterange(start, end, taskId, callback_) {
     let post_daterange = {
             start_date: django_date(start),
             end_date: django_date(end),
-            task: task_id,
+            task: taskId,
         };
     post("{% url 'api:dateranges-list'%}", post_daterange, callback_)
 }
@@ -52,9 +52,9 @@ function f_post_daterange(start, end, task_id, callback_) {
 function put_daterange(event) {
     /*Modyfy daterange according to event data*/
     let daterange = {
-        start_date: django_date(event['start']),
-        end_date: django_date(event['end']),
-        task: event['task_id'],
+        start_date: django_date(event.start),
+        end_date: django_date(event.end),
+        task: event.taskId,
     };
 
     // jquery .put doesnt exist.. put wrapper
@@ -76,9 +76,9 @@ function postTaskFormData(datee) {
     xhr.responseType = 'json';  // allow to convert formData to json automatically
     xhr.onreadystatechange = function() {  // callback
     if (xhr.readyState === XMLHttpRequest.DONE) {
-        let task_id = xhr.response.id
+        let taskId = xhr.response.id
             // call function defined in parent window
-            window.parent.f_post_daterange(datee, datee, task_id, function(response) {
+            window.parent.f_post_daterange(datee, datee, taskId, function(response) {
                 location.reload()  // refresh page
             })
         }
@@ -132,7 +132,7 @@ $(document).ready(function() {  // called when page is completely loaded
                     $("#calendar").fullCalendar('removeEvents', event.id);  // rm event in calendar
                     $('#task_dialog').dialog('close') // closes dialog
                 })
-                .load("update_task/"+event['task_id'], function () {
+                .load("update_task/"+event.taskId, function () {
                     // add unlink button to dialog
                     $('#task_dialog')
                         .append("<input type=\"button\" value=\"Unlink the date\"" +
@@ -160,7 +160,7 @@ $(document).ready(function() {  // called when page is completely loaded
         eventReceive: function(event, view) {
 
             // post a new daterange, but if form is cancelled it's keeped in db
-            f_post_daterange(event.start, event.end, event.task_id, function(response) {
+            f_post_daterange(event.start, event.end, event.taskId, function(response) {
                 event.id = response['id']; // id of event is id of daterange
                 $('#calendar').fullCalendar('updateEvent', event);
             });

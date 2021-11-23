@@ -42,7 +42,7 @@ class EventViewSet(viewsets.ViewSet):
         for task in Task.objects.all():
             for daterange in task.daterange_set.filter(start_date__gte=start, end_date__lte=end):
                 qs.append({
-                    'task_id': task.id,
+                    'taskId': task.id,
                     'id': daterange.pk,
                     'title': task.name,
                     'start': daterange.start_date,
