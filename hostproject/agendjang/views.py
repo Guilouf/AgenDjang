@@ -1,6 +1,6 @@
 from django.shortcuts import HttpResponse
 from django.template import loader
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView
+from django.views.generic import TemplateView, ListView, CreateView, UpdateView
 from django.utils import timezone
 from django.urls import reverse_lazy
 
@@ -74,14 +74,6 @@ class TaskUpdate(UpdateView):
     model = Task
     form_class = TaskForm
     success_url = reverse_lazy('view_calendar')
-
-
-class TaskList(ListView):
-    model = Task
-
-
-class TaskDetail(DetailView):
-    model = Task
 
 
 class TagCreate(CreateView):
