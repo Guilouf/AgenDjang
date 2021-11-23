@@ -34,7 +34,7 @@ class DateRangeViewSet(viewsets.ModelViewSet):
 class EventViewSet(viewsets.ViewSet):
     def list(self, request):
 
-        start = self.request.query_params.get('start')  # not tz aware, by vary from date to datetime
+        start = self.request.query_params.get('start')  # not tz aware, because vary from date to datetime
         end = self.request.query_params.get('end')
 
         qs = []
@@ -60,7 +60,7 @@ class EventViewSet(viewsets.ViewSet):
 #############
 
 def help_view(request):
-    """read a markdown help file and convert it to html"""
+    """Read a markdown help file and convert it to html"""
     return HttpResponse(markdown(loader.render_to_string('agendjang/help.md')))
 
 
@@ -98,7 +98,7 @@ class CalendarView(TemplateView):
 
 
 class JavascriptCalendarView(ListView):
-    model = Task  # listview because i export tasklist in the js calendar as django tags
+    model = Task  # ListView because i export TaskList in the js calendar as django tags
     template_name = 'agendjang/js_calendar.js'
     content_type = 'text/javascript'
 
