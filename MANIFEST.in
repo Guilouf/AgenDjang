@@ -1,0 +1,4 @@
+include LICENSE
+include README.md
+recursive-include hostproject/agendjang/static *
+recursive-include hostproject/agendjang/templates *

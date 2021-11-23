@@ -6,17 +6,20 @@ Django app for task scheduling
 # TODO
 - [X] Add the javascript calendar, full calendar
 - [X] Use DRF for AJAX
-- [ ] Add FullCalendar as a git submodule, a dependency
-    > Bad idea, better use a dependency manager for js, like bower, webpack, yarn
-- [ ] Make patches for all project related files
+- [ ] Handle js dependencies
 - [ ] Markdown support for TextFields
 - [ ] Calendar export, e.g as VCS
 - [ ] Interaction with the [google calendar API](https://developers.google.com/google-apps/calendar/quickstart/python)
 
 ## Install
 - `pip install -r requirements.txt`
-- `python mananage.py makemigrations` 
-- `python manange.py migrate`
+- `python manage.py makemigrations` 
+- `python manage.py migrate`
+
+# Build
+- Be sure to have `wheel` package installed, if not pip will use an egg install (old)
+- `pip install .`
 
 # Install in another project
-- Put `agendjang` and `rest_framework` in `INSTALLED_APPS`
+- Put `agendjang` in `INSTALLED_APPS`
+- include urls ` path('your_path', include('agendjang.urls'))`
