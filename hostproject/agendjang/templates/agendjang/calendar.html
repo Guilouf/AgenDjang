@@ -73,7 +73,6 @@
                         $('.{{ task.pk }}').data('event', {
                             title: '{{ task.name }}',
                             task_id: '{{ task.pk }}',
-                            many_dateranges: [{% for daterange in task.many_dateranges.all %} {{ daterange.pk }}, {% endfor %}], // moche
                             stick: true});
                     </script>
                 {% endif %}
