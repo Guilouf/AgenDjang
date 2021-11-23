@@ -58,7 +58,7 @@ function put_daterange(event) {
     };
 
     // jquery .put doesnt exist.. put wrapper
-    put("{% url 'api:dateranges-list'%}"+event['id']+'/', daterange,
+    put("{% url 'api:dateranges-list'%}"+event.id+'/', daterange,
         function(data) {}
     );
 }
@@ -69,7 +69,7 @@ function deleteDateRange(dateRangeId) {
     );
 }
 
-function postTaskFormData(datee) {
+function postTaskFormData(date) {
     let formData = new FormData(document.querySelector('form'))
 
     let xhr = new XMLHttpRequest();
@@ -78,7 +78,7 @@ function postTaskFormData(datee) {
     if (xhr.readyState === XMLHttpRequest.DONE) {
         let taskId = xhr.response.id
             // call function defined in parent window
-            window.parent.f_post_daterange(datee, datee, taskId, function(response) {
+            window.parent.f_post_daterange(date, date, taskId, function(response) {
                 location.reload()  // refresh page
             })
         }
@@ -112,9 +112,9 @@ $(document).ready(function() {  // called when page is completely loaded
 
         events: "{% url 'api:events-list'%}", // fullcalendar handles the call format
 
-        dayClick: function(datee) {
+        dayClick: function(dayDate) {
 
-            $('#task_dialog').data('ajaxCall', function (){postTaskFormData(datee)}).load("create_task", function() { // relative url, resolver useless
+            $('#task_dialog').data('ajaxCall', function (){postTaskFormData(dayDate)}).load("create_task", function() { // relative url, resolver useless
                 $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
                 // modify input button to send AJAX request
                 $('#task_input')
@@ -161,7 +161,7 @@ $(document).ready(function() {  // called when page is completely loaded
 
             // post a new daterange, but if form is cancelled it's keeped in db
             f_post_daterange(event.start, event.end, event.taskId, function(response) {
-                event.id = response['id']; // id of event is id of daterange
+                event.id = response.id; // id of event is id of daterange
                 $('#calendar').fullCalendar('updateEvent', event);
             });
         },
