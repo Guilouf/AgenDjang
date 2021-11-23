@@ -7,7 +7,6 @@ Django app for task scheduling
 - [X] Add the javascript calendar, full calendar
 - [X] Use DRF for AJAX
 - [ ] Handle js dependencies
-- [ ] Make patches for all project related files
 - [ ] Markdown support for TextFields
 - [ ] Calendar export, e.g as VCS
 - [ ] Interaction with the [google calendar API](https://developers.google.com/google-apps/calendar/quickstart/python)
@@ -18,7 +17,7 @@ Django app for task scheduling
 - `python manage.py migrate`
 
 # Build
-- Be sure to have `wheel` package, if not it will be an egg install (old)
+- Be sure to have `wheel` package installed, if not pip will use an egg install (old)
 - `pip install .`
 
 # Install in another project
