@@ -50,18 +50,14 @@
             <h3>{{ tag.name }}</h3>
 
             <div>
-            <!--div necessaire pour contenir les task et présenter l'accordeon-->
-            <!--le drag n drop jquery ne marche pas entre les différentes frames
-            du coup il faudrait utiliser le drag n drop html5 ou faire tt dans la mm frame
-            les données associées peuvent être passées en html(data-event), mais la div doit etre passée en draggable
-            par jquery-->
+            <!--necessary div to contain tasks into accordeon-->
                 <div id='modify_tag_dialog' title="Modify tag" style="display: none;"></div>
                 <button id="btn_modify_tag" type="button"
                         onclick="load_dialog('#modify_tag_dialog', 'update_tag/{{tag.pk}}')">Modify tag</button>
 
             {% for task in tag.task_set.all %}
                 {% if not task.done %}
-                    <!--plusieurs classes separées par des espaces-->
+                    <!--several classes split with spaces-->
                     <div class="task_div {{ task.pk }}"> {{ task.name }}
 
                         <div id='edit_task_dialog' title="Edit task" style="display: none;"></div>
@@ -83,11 +79,11 @@
         </div>
     {% endfor %}
 
-        <!--rend draggable les task-->
+        <!--makes tasks draggable-->
          <script>
              $('.task_div').draggable({
                  revert: true,      // immediately snap back to original position
-                 revertDuration: 8,  //le temps que ca met a revenir. reviens mm quand succès, et succes que qd reviens..
+                 revertDuration: 8,  // time to snap back
                  helper: "clone",  // correct zindex of draggable element, dunno how
              });
          </script>

@@ -42,7 +42,6 @@ function django_date(date_) {
 
 function f_post_daterange(start, end, task_id, callback_) {
     let post_daterange = {
-            // le fait d'avoir une variable fait que c'est plus de json de base
             start_date: django_date(start),
             end_date: django_date(end),
             task: task_id,
@@ -88,15 +87,12 @@ function postTaskFormData(datee) {
     xhr.send(formData)
 }
 
-$(document).ready(function() {  // called when page completly loaded
-
-    // helper: view-source:https://fullcalendar.io/js/fullcalendar-3.7.0/demos/agenda-views.html
+$(document).ready(function() {  // called when page is completely loaded
 
     //load the accordiion UI for the accord class
     $(".accord").accordion({ collapsible: true, active: false }); // keep open multiple sections
 
     $('#calendar').fullCalendar({
-        // put your options and callbacks here
         editable: true,  // event on the calendar can be modified
         droppable: true, // allow external event drop
         forceEventDuration: true, // if not all day and no end date, create default end date
@@ -110,14 +106,13 @@ $(document).ready(function() {  // called when page completly loaded
         },
         views: { // like general option, but only apply to specific views
             week: {
-                columnFormat: 'ddd D/M', //overides also for month view
+                columnFormat: 'ddd D/M', // overrides also for month view
             },
         },
 
         events: "{% url 'api:events-list'%}", // fullcalendar handles the call format
 
-        // when we clic a day..
-        dayClick: function(datee) {  // on rajoute comme arg ce que l'on veut recup ds la callback, rien sinon
+        dayClick: function(datee) {
 
             $('#task_dialog').data('ajaxCall', function (){postTaskFormData(datee)}).load("create_task", function() { // relative url, resolver useless
                 $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
@@ -129,11 +124,7 @@ $(document).ready(function() {  // called when page completly loaded
             });
         },
 
-
-        // quand on clique sur un event..
-        eventClick: function(event) { // on aussi avoir la position de la souris, la vue etc..
-            // c'est propre mais c pas de l'ajax, faut reload la page a chaque post..
-            // en revanche, ca va bien ac les event init via django template..
+        eventClick: function(event) {
             $('#task_dialog')
                 // callback called when pressing dialog unlink date button
                 .data('deleteDate', function () {
@@ -152,7 +143,7 @@ $(document).ready(function() {  // called when page completly loaded
 
         // when dragndrop finished and datetime changed (internal event dragndrop)
         eventDrop: function(event, delta, revertFunc) {
-            if (event.allDay) {  // in our data model, an event is considerer all day if it last 24hours
+            if (event.allDay) {  // in our data model, an event is considered all day if it last 24hours
                 // in fullcalendar, an allDay event just takes into account "start" and "allDay=true"
                 event.end = new moment(event.start)
                 event.end.add(1, 'days')
@@ -163,10 +154,6 @@ $(document).ready(function() {  // called when page completly loaded
         // when timestamp resize is finished and time changed
         eventResize: function(event, delta, revertFunc) {
             put_daterange(event)
-        },
-
-        drop: function(date) {
-            // for low level data callback of external drop, not usefull. called before event receive
         },
 
         // drop callback only for low level drop data, this gets the external dropped event
