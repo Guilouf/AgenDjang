@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Agendjang</title>
     {% load static %}
     <link rel='stylesheet' href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.6.1/fullcalendar.css" />
-    <!-- fixme Manque les images si on met en local-->
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel='stylesheet' href="{% static 'css/impose_ton_style.css' %}" />
 
@@ -70,7 +69,6 @@
                                     onclick="load_dialog('#edit_task_dialog', 'update_task/{{task.pk}}' )">EDIT</button>
                     </div>
 
-                    <!--fixme c'est assez mauvais ca fait des copiés collés du code dans la page..=> un tableau ?-->
                     <script>
                         $('.{{ task.pk }}').data('event', {
                             title: '{{ task.name }}',
@@ -96,8 +94,6 @@
          </script>
 
     </div>
-
-
 
 </body>
 
