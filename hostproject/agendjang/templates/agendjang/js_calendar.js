@@ -1,5 +1,22 @@
 // template dynamic js, why not,
 
+function getCookie(name) {
+    /*from django docs. parse cookie*/
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 // wrapper for ajax put
 function put(url, data, callback) {
     $.ajax({
@@ -88,6 +105,13 @@ function postTaskFormData(date) {
 }
 
 $(document).ready(function() {  // called when page is completely loaded
+
+    // send cookie value to request header
+    $.ajaxSetup({
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        }
+    });
 
     //load the accordiion UI for the accord class
     $(".accord").accordion({ collapsible: true, active: false }); // keep open multiple sections

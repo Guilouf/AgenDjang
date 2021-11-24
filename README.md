@@ -23,3 +23,8 @@ Django app for task scheduling
 # Install in another project
 - Put `agendjang` in `INSTALLED_APPS`
 - include urls ` path('your_path', include('agendjang.urls'))`
+
+# Security
+- CSRF protection is enabled if `'rest_framework.authentication.SessionAuthentication',` is used. 
+ `CSRF_USE_SESSIONS` and `CSRF_COOKIE_HTTPONLY` should be at default "False" value.
+ - If no user is logged, it still works but there is no `CSRF` protection indeed. 
