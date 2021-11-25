@@ -63,7 +63,7 @@ function postDaterange(start, end, taskId, callback) {
             end_date: djangoDate(end),
             task: taskId,
         };
-    post("{% url 'api:dateranges-list'%}", postDateRange, callback)
+    post("{% url 'agendjang:api:dateranges-list'%}", postDateRange, callback)
 }
 
 function putDaterange(event) {
@@ -75,13 +75,13 @@ function putDaterange(event) {
     };
 
     // jquery .put doesnt exist.. put wrapper
-    put("{% url 'api:dateranges-list'%}"+event.id+'/', daterange,
+    put("{% url 'agendjang:api:dateranges-list'%}"+event.id+'/', daterange,
         function(data) {}
     );
 }
 
 function deleteDateRange(dateRangeId) {
-    remove("{% url 'api:dateranges-list'%}"+dateRangeId+'/',
+    remove("{% url 'agendjang:api:dateranges-list'%}"+dateRangeId+'/',
         function(data) {}
     );
 }
@@ -100,7 +100,7 @@ function postTaskFormData(date) {
             })
         }
     }
-    xhr.open("POST", "{% url 'api:tasks-list' %}");
+    xhr.open("POST", "{% url 'agendjang:api:tasks-list' %}");
     xhr.send(formData)
 }
 
@@ -134,7 +134,7 @@ $(document).ready(function() {  // called when page is completely loaded
             },
         },
 
-        events: "{% url 'api:events-list'%}", // fullcalendar handles the call format
+        events: "{% url 'agendjang:api:events-list'%}", // fullcalendar handles the call format
 
         dayClick: function(dayDate) {
 
