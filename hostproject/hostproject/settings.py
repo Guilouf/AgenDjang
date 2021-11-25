@@ -102,10 +102,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Disable CSRF verification when admin is logged in
+# Enfore CSRF
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
 }
 

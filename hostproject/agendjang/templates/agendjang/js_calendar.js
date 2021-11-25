@@ -1,5 +1,22 @@
 // template dynamic js, why not,
 
+function getCookie(name) {
+    /*from django docs. parse cookie*/
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 // wrapper for ajax put
 function put(url, data, callback) {
     $.ajax({
@@ -46,7 +63,7 @@ function postDaterange(start, end, taskId, callback) {
             end_date: djangoDate(end),
             task: taskId,
         };
-    post("{% url 'api:dateranges-list'%}", postDateRange, callback)
+    post("{% url 'agendjang:api:dateranges-list'%}", postDateRange, callback)
 }
 
 function putDaterange(event) {
@@ -58,13 +75,13 @@ function putDaterange(event) {
     };
 
     // jquery .put doesnt exist.. put wrapper
-    put("{% url 'api:dateranges-list'%}"+event.id+'/', daterange,
+    put("{% url 'agendjang:api:dateranges-list'%}"+event.id+'/', daterange,
         function(data) {}
     );
 }
 
 function deleteDateRange(dateRangeId) {
-    remove("{% url 'api:dateranges-list'%}"+dateRangeId+'/',
+    remove("{% url 'agendjang:api:dateranges-list'%}"+dateRangeId+'/',
         function(data) {}
     );
 }
@@ -83,11 +100,18 @@ function postTaskFormData(date) {
             })
         }
     }
-    xhr.open("POST", "{% url 'api:tasks-list' %}");
+    xhr.open("POST", "{% url 'agendjang:api:tasks-list' %}");
     xhr.send(formData)
 }
 
 $(document).ready(function() {  // called when page is completely loaded
+
+    // send cookie value to request header
+    $.ajaxSetup({
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        }
+    });
 
     //load the accordiion UI for the accord class
     $(".accord").accordion({ collapsible: true, active: false }); // keep open multiple sections
@@ -110,7 +134,7 @@ $(document).ready(function() {  // called when page is completely loaded
             },
         },
 
-        events: "{% url 'api:events-list'%}", // fullcalendar handles the call format
+        events: "{% url 'agendjang:api:events-list'%}", // fullcalendar handles the call format
 
         dayClick: function(dayDate) {
 
