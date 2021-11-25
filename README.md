@@ -27,4 +27,7 @@ Django app for task scheduling
 # Security
 - CSRF protection is enabled if `'rest_framework.authentication.SessionAuthentication',` is used. 
  `CSRF_USE_SESSIONS` and `CSRF_COOKIE_HTTPONLY` should be at default "False" value.
- - If no user is logged, it still works but there is no `CSRF` protection indeed. 
+ - If no user is logged, it still works but there is no `CSRF` protection indeed.
+ - To prevent access to unauthenticated users, put `'agendjang.middleware.LoginRequiredAccess'` in your `MIDDLEWARE` list
+ (be sure to have a login view, put this in project's `urls.py` to do a quick test:
+  `path('accounts/login/', auth_views.LoginView.as_view(template_name='admin/login.html')),`)
