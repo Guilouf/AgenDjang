@@ -67,25 +67,25 @@ def help_view(request):
 class TaskCreate(CreateView):
     model = Task
     form_class = TaskForm
-    success_url = reverse_lazy('view_calendar')
+    success_url = reverse_lazy('agendjang:view_calendar')
 
 
 class TaskUpdate(UpdateView):
     model = Task
     form_class = TaskForm
-    success_url = reverse_lazy('view_calendar')
+    success_url = reverse_lazy('agendjang:view_calendar')
 
 
 class TagCreate(CreateView):
     model = Tag
     form_class = TagForm
-    success_url = reverse_lazy('view_calendar')
+    success_url = reverse_lazy('agendjang:view_calendar')
 
 
 class TagUpdate(UpdateView):
     model = Tag
     form_class = TagForm
-    success_url = reverse_lazy('view_calendar')
+    success_url = reverse_lazy('agendjang:view_calendar')
 
 
 class CalendarView(TemplateView):
