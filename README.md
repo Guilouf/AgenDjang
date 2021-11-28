@@ -11,7 +11,7 @@ Django app for task scheduling
 - [ ] Calendar export, e.g as VCS
 - [ ] Interaction with the [google calendar API](https://developers.google.com/google-apps/calendar/quickstart/python)
 
-## Install
+# Install
 - `pip install -r requirements.txt`
 - `python manage.py makemigrations` 
 - `python manage.py migrate`
@@ -21,6 +21,8 @@ Django app for task scheduling
 - `pip install .`
 
 # Install in another project
+- `pip install git+https://github.com/Guilouf/AgenDjang.git` 
+or append `git+https://github.com/Guilouf/AgenDjang.git` in your project's `requirements.txt`
 - Put `agendjang` in `INSTALLED_APPS`
 - include urls ` path('your_path', include('agendjang.urls'))`
 
