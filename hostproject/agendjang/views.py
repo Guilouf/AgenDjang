@@ -33,7 +33,8 @@ class DateRangeViewSet(viewsets.ModelViewSet):
 
 class EventViewSet(viewsets.ViewSet):
     def list(self, request):
-
+        """With calendar month view, 'start' and 'end' params are dates,
+         but in week and day views they are datetime"""
         start = self.request.query_params.get('start')  # not tz aware, because vary from date to datetime
         end = self.request.query_params.get('end')
 
