@@ -40,8 +40,8 @@ class EventViewSet(viewsets.ViewSet):
         end = self.request.query_params.get('end')
 
         # parse the first part of the string, containing only the date (ignore time string)
-        start = timezone.make_aware(datetime.strptime(start[0:10], '%Y-%M-%d'))
-        end = timezone.make_aware(datetime.strptime(end[0:10], '%Y-%M-%d'))
+        start = timezone.make_aware(datetime.strptime(start[0:10], '%Y-%m-%d'))
+        end = timezone.make_aware(datetime.strptime(end[0:10], '%Y-%m-%d'))
 
         qs = []
 

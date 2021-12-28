@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name='django-agendjang',
-    version='1.0',
+    version='1.0.2',
     packages=['agendjang', 'agendjang.migrations', 'agendjang.static', 'agendjang.templates'],
     package_dir={'': 'hostproject'},
     url='https://github.com/Guilouf/AgenDjang',
