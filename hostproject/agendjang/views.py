@@ -13,7 +13,7 @@ from rest_framework.response import Response
 
 from markdown import markdown
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 
 #######
@@ -33,9 +33,15 @@ class DateRangeViewSet(viewsets.ModelViewSet):
 
 class EventViewSet(viewsets.ViewSet):
     def list(self, request):
-
-        start = self.request.query_params.get('start')  # not tz aware, because vary from date to datetime
+        """With calendar month view, 'start' and 'end' params are dates,
+         but in week and day views they are datetime.
+         We parse only the date part of the date, because reducing results with hour precision is useless"""
+        start = self.request.query_params.get('start')
         end = self.request.query_params.get('end')
+
+        # parse the first part of the string, containing only the date (ignore time string)
+        start = timezone.make_aware(datetime.strptime(start[0:10], '%Y-%M-%d'))
+        end = timezone.make_aware(datetime.strptime(end[0:10], '%Y-%M-%d'))
 
         qs = []
 
