@@ -186,7 +186,7 @@ $(document).ready(function() {  // called when page is completely loaded
             // post a new daterange, but if form is cancelled it's keeped in db
             postDaterange(event.start, event.end, event.taskId, function(response) {
                 event.id = response.id; // id of event is id of daterange
-                $('#calendar').fullCalendar('updateEvent', event);
+                $("#calendar").fullCalendar("refetchEvents"); // refresh events from server
             });
         },
 
