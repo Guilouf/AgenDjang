@@ -35,11 +35,8 @@ class DateRange(models.Model):
         return f"DateRange, {self.start_date}"
 
     def __add__(self, other):
+        # fixme dead code
         return DateRange(start_date=self.start_date + other, end_date=self.end_date + other)
-
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        super().save(force_insert, force_update, using, update_fields)
-        return self  # allow to chain the save method
 
 
 class Tag(models.Model):
