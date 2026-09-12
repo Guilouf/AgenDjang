@@ -106,7 +106,7 @@ class TagUpdate(UpdateView):
 class CalendarView(TemplateView):
     template_name = 'agendjang/calendar.html'
 
-    def get_context_data(self, **kwargs):  # adds the tag_list template tag, along object_list
+    def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['tag_list'] = Tag.objects.all()
         return ctx
