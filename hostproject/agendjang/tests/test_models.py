@@ -52,7 +52,7 @@ class DateRangeModelTest(TestCase):
 
     def test_str(self):
         dr = DateRange.objects.create(start_date=self.start, end_date=self.end, task=self.task)
-        self.assertEqual(str(dr), f"DateRange, {self.start}")
+        self.assertEqual(str(dr), f"DateRange {self.start}")
 
     def test_add_shifts_both_dates_without_mutating_original(self):
         # fixme test dead code

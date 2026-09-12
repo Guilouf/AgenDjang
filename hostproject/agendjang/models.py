@@ -33,7 +33,7 @@ class DateRange(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)  # when task is deleted, linked DateRange is removed too
 
     def __str__(self):
-        return f"DateRange, {self.start_date}"
+        return f"DateRange {self.start_date}"
 
     def __add__(self, other):
         # fixme dead code
