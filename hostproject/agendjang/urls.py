@@ -10,7 +10,7 @@ router.register(r'tasks', views.TaskViewSet, basename='tasks')  # basename for r
 router.register(r'dateranges', views.DateRangeViewSet, basename='dateranges')
 router.register(r'events', views.EventViewSet, basename='events')
 
-# https://docs.djangoproject.com/en/3.2/intro/tutorial03/#namespacing-url-names
+# https://docs.djangoproject.com/en/stable/intro/tutorial03/#namespacing-url-names
 app_name = 'agendjang'  # all urls here will have this namespace
 
 urlpatterns = [

@@ -1,4 +1,4 @@
-from django.shortcuts import HttpResponse
+from django.http import HttpResponse
 from django.template import loader
 from django.views.generic import TemplateView, ListView, CreateView, UpdateView
 from django.utils import timezone
