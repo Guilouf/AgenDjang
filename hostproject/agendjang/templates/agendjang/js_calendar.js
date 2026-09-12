@@ -17,35 +17,43 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// wrapper for ajax put
+// wrapper for a JSON PUT request; leave trailing / on url
 function put(url, data, callback) {
-    $.ajax({
-        url: url,  // leave trailing /
-        type: 'PUT',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        success: callback,
-    });
+    fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(data),
+    })
+        .then(response => response.ok ? response.json() : null)
+        .then(callback);
 }
 
-// $.post ajax is somewhat more buggy... even with json flag
+// wrapper for a JSON POST request; leave trailing / on url
 function post(url, data, callback) {
-    $.ajax({
-        url: url,  // leave trailing /
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        success: callback,
-    });
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify(data),
+    })
+        .then(response => response.ok ? response.json() : null)
+        .then(callback);
 }
 
 function remove(url, callback) {
-    $.ajax({
-        url: url,
-        type: 'DELETE',
-        contentType: 'application/json',
-        success: callback,
-    });
+    // DELETE responses have no body (204 No Content), so there's nothing to parse
+    fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    })
+        .then(callback);
 }
 
 function djangoDate(date) {
@@ -90,35 +98,25 @@ function deleteDateRange(dateRangeId) {
 }
 
 function postTaskFormData(date) {
-    let formData = new FormData(document.querySelector('form'))
+    // scoped to #task_dialog rather than a bare 'form' selector, since a stray
+    // form left loaded in another dialog would otherwise be picked up instead
+    let formData = new FormData(document.querySelector('#task_dialog form'))
 
     // a task created by clicking a day spans the full day (24h = allDay, per the API's own convention)
     let end = new Date(date);
     end.setDate(end.getDate() + 1);
 
-    let xhr = new XMLHttpRequest();
-    xhr.responseType = 'json';  // allow to convert formData to json automatically
-    xhr.onreadystatechange = function() {  // callback
-    if (xhr.readyState === XMLHttpRequest.DONE) {
-        let taskId = xhr.response.id
-            // call function defined in parent window
-            window.parent.postDaterange(date, end, taskId, function(response) {
+    fetch("{% url 'agendjang:api:tasks-list' %}", { method: 'POST', body: formData })
+        .then(response => response.ok ? response.json() : null)
+        .then(task => {
+            if (!task) return;  // validation failed; leave the dialog open instead of silently proceeding
+            window.parent.postDaterange(date, end, task.id, function(response) {
                 location.reload()  // refresh page
             })
-        }
-    }
-    xhr.open("POST", "{% url 'agendjang:api:tasks-list' %}");
-    xhr.send(formData)
+        });
 }
 
 $(document).ready(function() {  // called when page is completely loaded
-
-    // send cookie value to request header
-    $.ajaxSetup({
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken")
-        }
-    });
 
     const calendarEl = document.getElementById('calendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
