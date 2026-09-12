@@ -4,14 +4,9 @@
     <meta charset="UTF-8">
     <title>Agendjang</title>
     {% load static %}
-    <link rel='stylesheet' href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.6.1/fullcalendar.css" />
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel='stylesheet' href="{% static 'css/impose_ton_style.css' %}" />
 
-    <script src="//code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.6.1/fullcalendar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
 
     <!--js with django tags, in a separate view-->
     <script src="{% url 'agendjang:view_js_calendar' %}"></script>
@@ -19,74 +14,63 @@
 </head>
 
 <footer>
-    <div id='help_page' title="Help Page" style="display: none;"></div>
+    {% include 'agendjang/_dialog.html' with dialog_id='help_page' dialog_title='Help Page' %}
     <button id="btn_help" type="button"
             onclick="loadDialog('#help_page', 'help')">Help</button>
 </footer>
 
 <body>
-    <!--display none to hide when page loaded; called by eventCLick in js_calendar-->
-    <div id='task_dialog' title="Edit task" style="display: none;"></div>
+    <!--content loaded on demand; called by eventClick in js_calendar-->
+    {% include 'agendjang/_dialog.html' with dialog_id='task_dialog' dialog_title='Edit task' %}
 
     <div id='calendar'></div>
 
-    <!--loads dialog into a hidden div with content from another url-->
+    <!--loads dialog content from another url, then shows the dialog-->
     <script>
         function loadDialog(domId, relUrl) {
-            $(domId).load(relUrl);
-            $(domId).dialog({width: 'auto'});
+            const dialog = document.querySelector(domId);
+            fetch(relUrl)
+                .then(response => response.text())
+                .then(html => { dialog.querySelector('.dialog-content').innerHTML = html; });
+            dialog.showModal();
         }
     </script>
 
     <div id=tags>
 
-        <div id='create_tag_dialog' title="Create tag" style="display: none;"></div>
+        {% include 'agendjang/_dialog.html' with dialog_id='create_tag_dialog' dialog_title='Create tag' %}
         <button id="btn_create_tag" type="button"
                 onclick="loadDialog('#create_tag_dialog', 'create_tag')">New tag</button>
 
     {% for tag in tag_list %}
-        <div id="{{ tag.name }}" class="accord" >
+        <details id="{{ tag.name }}">
 
-            <h3>{{ tag.name }}</h3>
+            <summary>{{ tag.name }}</summary>
 
             <div>
             <!--necessary div to contain tasks into accordion-->
-                <div id='modify_tag_dialog' title="Modify tag" style="display: none;"></div>
+                {% include 'agendjang/_dialog.html' with dialog_id='modify_tag_dialog' dialog_suffix=tag.pk dialog_title='Modify tag' %}
                 <button id="btn_modify_tag" type="button"
-                        onclick="loadDialog('#modify_tag_dialog', 'update_tag/{{tag.pk}}')">Modify tag</button>
+                        onclick="loadDialog('#modify_tag_dialog-{{ tag.pk }}', 'update_tag/{{tag.pk}}')">Modify tag</button>
 
             {% for task in tag.task_set.all %}
                 {% if not task.done %}
-                    <!--several classes split with spaces-->
-                    <div class="task_div {{ task.pk }}"> {{ task.name }}
-
-                        <div id='edit_task_dialog' title="Edit task" style="display: none;"></div>
+                    <!--several classes split with spaces; data-* attrs read by FullCalendar's Draggable-->
+                    <!--dialog is a sibling, not a child: FullCalendar's Draggable makes this whole div's
+                    subtree natively draggable, and a <dialog> nested inside it would have its own inputs
+                    hijacked as a drag gesture instead of receiving clicks/keystrokes normally-->
+                    <div class="task_div {{ task.pk }}" data-title="{{ task.name }}" data-task-id="{{ task.pk }}"> {{ task.name }}
                             <button id="btn_edit_task" type="button"
-                                    onclick="loadDialog('#edit_task_dialog', 'update_task/{{task.pk}}' )">EDIT</button>
+                                    onclick="loadDialog('#edit_task_dialog-{{ task.pk }}', 'update_task/{{task.pk}}' )">EDIT</button>
                     </div>
-
-                    <script>
-                        $('.{{ task.pk }}').data('event', {
-                            title: '{{ task.name }}',
-                            taskId: '{{ task.pk }}',
-                            stick: false});
-                    </script>
+                    {% include 'agendjang/_dialog.html' with dialog_id='edit_task_dialog' dialog_suffix=task.pk dialog_title='Edit task' %}
                 {% endif %}
 
             {% endfor %}
 
             </div>
-        </div>
+        </details>
     {% endfor %}
-
-        <!--makes tasks draggable-->
-         <script>
-             $('.task_div').draggable({
-                 revert: true,      // immediately snap back to original position
-                 revertDuration: 8,  // time to snap back
-                 helper: "clone",  // correct zindex of draggable element, dunno how
-             });
-         </script>
 
     </div>
 
