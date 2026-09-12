@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -13,10 +14,10 @@ class Task(models.Model):
     Procrastinated task
     """
     name = models.CharField(max_length=100)
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField(blank=True)
     done = models.BooleanField(default=False)
     archive = models.BooleanField(default=False)
-    points = models.IntegerField(default=1)
+    points = models.IntegerField(default=1, validators=[MinValueValidator(0)])
 
     many_tags = models.ManyToManyField('Tag', blank=True)
 
@@ -32,19 +33,16 @@ class DateRange(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)  # when task is deleted, linked DateRange is removed too
 
     def __str__(self):
-        return f"DateRange, {self.start_date}"
+        return f"DateRange {self.start_date}"
 
     def __add__(self, other):
+        # fixme dead code
         return DateRange(start_date=self.start_date + other, end_date=self.end_date + other)
-
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        super().save(force_insert, force_update, using, update_fields)
-        return self  # allow to chain the save method
 
 
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField(blank=True)
 
     def __str__(self):
         return f"Tag {self.name}"

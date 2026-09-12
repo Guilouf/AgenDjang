@@ -1,4 +1,4 @@
 # Commmented to be version agnostic
-django # >= 3.2.9
+django # >= 6.0
 djangorestframework # >= 3.12
 markdown # >= 2.6.11

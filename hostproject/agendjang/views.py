@@ -1,6 +1,7 @@
-from django.shortcuts import HttpResponse
-from django.template import loader
-from django.views.generic import TemplateView, ListView, CreateView, UpdateView
+from pathlib import Path
+
+from django.http import HttpResponse
+from django.views.generic import TemplateView, CreateView, UpdateView
 from django.utils import timezone
 from django.urls import reverse_lazy
 
@@ -36,26 +37,33 @@ class EventViewSet(viewsets.ViewSet):
         """With calendar month view, 'start' and 'end' params are dates,
          but in week and day views they are datetime.
          We parse only the date part of the date, because reducing results with hour precision is useless"""
-        start = self.request.query_params.get('start')
-        end = self.request.query_params.get('end')
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
 
         # parse the first part of the string, containing only the date (ignore time string)
         start = timezone.make_aware(datetime.strptime(start[0:10], '%Y-%m-%d'))
         end = timezone.make_aware(datetime.strptime(end[0:10], '%Y-%m-%d'))
 
-        qs = []
+        # overlap, not containment: a daterange that only partially overlaps the
+        # requested window must still be returned (the calendar widget clips it itself)
+        dateranges = DateRange.objects.select_related('task').filter(
+            task__archive=False,  # excludes archived tasks, in a single query
+            start_date__lt=end,
+            end_date__gt=start,
+        )
 
-        for task in Task.objects.all():
-            for daterange in task.daterange_set.filter(start_date__gte=start, end_date__lte=end):
-                qs.append({
-                    'taskId': task.id,
-                    'id': daterange.pk,
-                    'title': task.name,
-                    'start': daterange.start_date,
-                    'end': daterange.end_date,
-                    'allDay': True if daterange.end_date - daterange.start_date == timedelta(hours=24) else False,
-                    'color': 'red' if (not task.done and timezone.now() > daterange.end_date) else 'green',
-                })
+        qs = [
+            {
+                'taskId': daterange.task_id,
+                'id': daterange.pk,
+                'title': daterange.task.name,
+                'start': daterange.start_date,
+                'end': daterange.end_date,
+                'allDay': daterange.end_date - daterange.start_date == timedelta(hours=24),
+                'color': 'red' if (not daterange.task.done and timezone.now() > daterange.end_date) else 'green',
+            }
+            for daterange in dateranges
+        ]
 
         serializer = EventSerializer(qs, many=True)
         return Response(serializer.data)
@@ -66,8 +74,9 @@ class EventViewSet(viewsets.ViewSet):
 #############
 
 def help_view(request):
-    """Read a markdown help file and convert it to html"""
-    return HttpResponse(markdown(loader.render_to_string('agendjang/help.md')))
+    """Read a markdown help file and convert it to html."""
+    help_md_path = Path(__file__).resolve().parent / 'templates' / 'agendjang' / 'help.md'
+    return HttpResponse(markdown(help_md_path.read_text()))
 
 
 class TaskCreate(CreateView):
@@ -97,18 +106,12 @@ class TagUpdate(UpdateView):
 class CalendarView(TemplateView):
     template_name = 'agendjang/calendar.html'
 
-    def get_context_data(self, **kwargs):  # adds the tag_list template tag, along object_list
-        ctx = super().get_context_data(**kwargs)
-        ctx['tag_list'] = Tag.objects.all()
-        return ctx
-
-
-class JavascriptCalendarView(ListView):
-    model = Task  # ListView because i export TaskList in the js calendar as django tags
-    template_name = 'agendjang/js_calendar.js'
-    content_type = 'text/javascript'
-
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['tag_list'] = Tag.objects.all()
         return ctx
+
+
+class JavascriptCalendarView(TemplateView):
+    template_name = 'agendjang/js_calendar.js'
+    content_type = 'text/javascript'

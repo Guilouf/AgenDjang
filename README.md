@@ -1,5 +1,5 @@
 # AgenDjang
-![Travis](https://img.shields.io/badge/Python%20-3.8-brightgreen.svg?style=plastic) ![Travis](https://img.shields.io/badge/Django%20-3.2.9-brightgreen.svg?style=plastic)
+![Travis](https://img.shields.io/badge/Python%20-3.14-brightgreen.svg?style=plastic) ![Travis](https://img.shields.io/badge/Django%20-6.1.1-brightgreen.svg?style=plastic)
 Django app for task scheduling
 
 

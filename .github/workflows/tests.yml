@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install coverage
+
+      - name: Run Django checks
+        working-directory: hostproject
+        run: python manage.py check
+
+      - name: Check for missing migrations
+        working-directory: hostproject
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Run tests with coverage
+        working-directory: hostproject
+        # verbosity level 2 for displaying test names instead of dots
+        run: |
+          coverage run --source=agendjang --omit='*/migrations/*,*/tests/*' manage.py test agendjang -v 2
+          coverage report -m
