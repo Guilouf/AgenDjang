@@ -49,13 +49,14 @@ function remove(url, callback) {
 }
 
 function djangoDate(date) {
-    /* FullCalendar v6 hands callbacks native Date objects (not moment objects
-    like v3 did), so wrap in moment() here rather than at every call site.
-    Here the date have always the same format even if hours missing
+    /* Build a fixed-format datetime string for the Django API from a native Date,
+    using local time components, even when the date has no meaningful time part
+    (e.g. midnight from a day click)
     => 2017-11-28T13:00:00
-    'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
     */
-    return moment(date).format('YYYY-MM-DD[T]HH:mm:ss');
+    const pad = n => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+        `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
 function postDaterange(start, end, taskId, callback) {
