@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.template import loader
-from django.views.generic import TemplateView, ListView, CreateView, UpdateView
+from django.views.generic import TemplateView, CreateView, UpdateView
 from django.utils import timezone
 from django.urls import reverse_lazy
 
@@ -110,12 +110,6 @@ class CalendarView(TemplateView):
         return ctx
 
 
-class JavascriptCalendarView(ListView):
-    model = Task  # ListView because i export TaskList in the js calendar as django tags
+class JavascriptCalendarView(TemplateView):
     template_name = 'agendjang/js_calendar.js'
     content_type = 'text/javascript'
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['tag_list'] = Tag.objects.all()
-        return ctx
