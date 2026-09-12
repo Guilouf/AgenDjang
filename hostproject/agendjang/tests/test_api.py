@@ -186,6 +186,21 @@ class EventApiTest(APITestCase):
 
         self.assertEqual(response.data, [])
 
+    def test_daterange_overlapping_the_window_edge_is_still_included(self):
+        """A daterange that starts before the requested window but ends inside
+        it (or vice-versa) overlaps the window and must be returned, even
+        though it isn't fully contained within [start, end]."""
+        task = Task.objects.create(name="Straddles window start")
+        DateRange.objects.create(
+            start_date=self.today - timedelta(days=15),  # starts well before the window
+            end_date=self.today - timedelta(days=9),  # ends inside the window (window starts at -10)
+            task=task,
+        )
+
+        response = self.get_events()
+
+        self.assertEqual(len(response.data), 1)
+
     def test_only_the_date_part_of_start_and_end_params_is_used(self):
         """Week/day views send full datetimes; the view should truncate
         them to the date part instead of erroring out."""

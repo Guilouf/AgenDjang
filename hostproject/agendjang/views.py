@@ -36,26 +36,33 @@ class EventViewSet(viewsets.ViewSet):
         """With calendar month view, 'start' and 'end' params are dates,
          but in week and day views they are datetime.
          We parse only the date part of the date, because reducing results with hour precision is useless"""
-        start = self.request.query_params.get('start')
-        end = self.request.query_params.get('end')
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
 
         # parse the first part of the string, containing only the date (ignore time string)
         start = timezone.make_aware(datetime.strptime(start[0:10], '%Y-%m-%d'))
         end = timezone.make_aware(datetime.strptime(end[0:10], '%Y-%m-%d'))
 
-        qs = []
+        # overlap, not containment: a daterange that only partially overlaps the
+        # requested window must still be returned (the calendar widget clips it itself)
+        dateranges = DateRange.objects.select_related('task').filter(
+            task__archive=False,  # excludes archived tasks, in a single query
+            start_date__lt=end,
+            end_date__gt=start,
+        )
 
-        for task in Task.objects.all():
-            for daterange in task.daterange_set.filter(start_date__gte=start, end_date__lte=end):
-                qs.append({
-                    'taskId': task.id,
-                    'id': daterange.pk,
-                    'title': task.name,
-                    'start': daterange.start_date,
-                    'end': daterange.end_date,
-                    'allDay': True if daterange.end_date - daterange.start_date == timedelta(hours=24) else False,
-                    'color': 'red' if (not task.done and timezone.now() > daterange.end_date) else 'green',
-                })
+        qs = [
+            {
+                'taskId': daterange.task_id,
+                'id': daterange.pk,
+                'title': daterange.task.name,
+                'start': daterange.start_date,
+                'end': daterange.end_date,
+                'allDay': daterange.end_date - daterange.start_date == timedelta(hours=24),
+                'color': 'red' if (not daterange.task.done and timezone.now() > daterange.end_date) else 'green',
+            }
+            for daterange in dateranges
+        ]
 
         serializer = EventSerializer(qs, many=True)
         return Response(serializer.data)
