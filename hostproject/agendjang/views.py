@@ -1,5 +1,6 @@
+from pathlib import Path
+
 from django.http import HttpResponse
-from django.template import loader
 from django.views.generic import TemplateView, CreateView, UpdateView
 from django.utils import timezone
 from django.urls import reverse_lazy
@@ -73,8 +74,9 @@ class EventViewSet(viewsets.ViewSet):
 #############
 
 def help_view(request):
-    """Read a markdown help file and convert it to html"""
-    return HttpResponse(markdown(loader.render_to_string('agendjang/help.md')))
+    """Read a markdown help file and convert it to html."""
+    help_md_path = Path(__file__).resolve().parent / 'templates' / 'agendjang' / 'help.md'
+    return HttpResponse(markdown(help_md_path.read_text()))
 
 
 class TaskCreate(CreateView):
