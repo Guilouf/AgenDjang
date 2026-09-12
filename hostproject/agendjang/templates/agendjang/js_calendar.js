@@ -116,7 +116,7 @@ function postTaskFormData(date) {
         });
 }
 
-$(document).ready(function() {  // called when page is completely loaded
+document.addEventListener('DOMContentLoaded', function() {  // called when page is completely loaded
 
     const calendarEl = document.getElementById('calendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -142,35 +142,42 @@ $(document).ready(function() {  // called when page is completely loaded
 
         dateClick: function(info) {
             const dayDate = info.date;
+            const dialog = document.querySelector('#task_dialog');
 
-            $('#task_dialog').data('ajaxCall', function (){postTaskFormData(dayDate)});
-            $('#task_dialog').find('.dialog-content').load("create_task", function() { // relative url, resolver useless
-                // modify input button to send AJAX request
-                $('#task_input')
-                    .attr('onclick', '$(\'#task_dialog\').data(\'ajaxCall\')()')
-                    .attr('type', 'button')
-                    .val('SubmitAjax')  // rename field
-            });
-            document.querySelector('#task_dialog').showModal();
+            fetch("create_task") // relative url, resolver useless
+                .then(response => response.text())
+                .then(html => {
+                    dialog.querySelector('.dialog-content').innerHTML = html;
+                    // modify input button to send AJAX request instead of a normal form submit
+                    const submitBtn = document.querySelector('#task_input');
+                    submitBtn.type = 'button';
+                    submitBtn.value = 'SubmitAjax';  // rename field
+                    submitBtn.onclick = () => postTaskFormData(dayDate);
+                });
+            dialog.showModal();
         },
 
         eventClick: function(info) {
             const event = info.event;
-            $('#task_dialog')
-                // callback called when pressing dialog unlink date button
-                .data('deleteDate', function () {
-                    deleteDateRange(event.id)  // remove event in db
-                    event.remove();  // rm event in calendar
-                    document.querySelector('#task_dialog').close() // closes dialog
-                });
-            $('#task_dialog').find('.dialog-content')
-                .load("update_task/"+event.extendedProps.taskId, function () {
+            const dialog = document.querySelector('#task_dialog');
+
+            fetch("update_task/"+event.extendedProps.taskId) // relative url, resolver useless
+                .then(response => response.text())
+                .then(html => {
+                    const content = dialog.querySelector('.dialog-content');
+                    content.innerHTML = html;
                     // add unlink button to dialog
-                    $('#task_dialog').find('.dialog-content')
-                        .append("<input type=\"button\" value=\"Unlink the date\"" +
-                            " onclick=\"$(\'#task_dialog\').data(\'deleteDate\')()\" />")
-                }); // relative url, resolver useless
-            document.querySelector('#task_dialog').showModal();
+                    const unlinkBtn = document.createElement('input');
+                    unlinkBtn.type = 'button';
+                    unlinkBtn.value = 'Unlink the date';
+                    unlinkBtn.onclick = function () {
+                        deleteDateRange(event.id)  // remove event in db
+                        event.remove();  // rm event in calendar
+                        dialog.close()  // closes dialog
+                    };
+                    content.appendChild(unlinkBtn);
+                });
+            dialog.showModal();
         },
 
         // when dragndrop finished and datetime changed (internal event dragndrop)

@@ -6,7 +6,6 @@
     {% load static %}
     <link rel='stylesheet' href="{% static 'css/impose_ton_style.css' %}" />
 
-    <script src="//code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
 
     <!--js with django tags, in a separate view-->
@@ -29,8 +28,11 @@
     <!--loads dialog content from another url, then shows the dialog-->
     <script>
         function loadDialog(domId, relUrl) {
-            $(domId).find('.dialog-content').load(relUrl);
-            document.querySelector(domId).showModal();
+            const dialog = document.querySelector(domId);
+            fetch(relUrl)
+                .then(response => response.text())
+                .then(html => { dialog.querySelector('.dialog-content').innerHTML = html; });
+            dialog.showModal();
         }
     </script>
 
