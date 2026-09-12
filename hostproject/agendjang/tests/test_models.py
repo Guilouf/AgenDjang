@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.utils import timezone
@@ -32,6 +33,15 @@ class TaskModelTest(TestCase):
         archived = Task.objects.create(name="Archived", archive=True)
 
         self.assertEqual(list(Task.objects.filter(archive=True)), [archived])
+
+    def test_zero_points_is_valid(self):
+        task = Task(name="Task", points=0)
+        task.full_clean()  # should not raise
+
+    def test_negative_points_is_invalid(self):
+        task = Task(name="Task", points=-1)
+        with self.assertRaises(ValidationError):
+            task.full_clean()
 
 
 class DateRangeModelTest(TestCase):

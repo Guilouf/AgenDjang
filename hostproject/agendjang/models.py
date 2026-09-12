@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -16,7 +17,7 @@ class Task(models.Model):
     description = models.TextField(blank=True)
     done = models.BooleanField(default=False)
     archive = models.BooleanField(default=False)
-    points = models.IntegerField(default=1)
+    points = models.IntegerField(default=1, validators=[MinValueValidator(0)])
 
     many_tags = models.ManyToManyField('Tag', blank=True)
 
