@@ -5,7 +5,6 @@
     <title>Agendjang</title>
     {% load static %}
     <link rel='stylesheet' href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.6.1/fullcalendar.css" />
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel='stylesheet' href="{% static 'css/impose_ton_style.css' %}" />
 
     <script src="//code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -19,50 +18,50 @@
 </head>
 
 <footer>
-    <div id='help_page' title="Help Page" style="display: none;"></div>
+    {% include 'agendjang/_dialog.html' with dialog_id='help_page' dialog_title='Help Page' %}
     <button id="btn_help" type="button"
             onclick="loadDialog('#help_page', 'help')">Help</button>
 </footer>
 
 <body>
-    <!--display none to hide when page loaded; called by eventCLick in js_calendar-->
-    <div id='task_dialog' title="Edit task" style="display: none;"></div>
+    <!--content loaded on demand; called by eventClick in js_calendar-->
+    {% include 'agendjang/_dialog.html' with dialog_id='task_dialog' dialog_title='Edit task' %}
 
     <div id='calendar'></div>
 
-    <!--loads dialog into a hidden div with content from another url-->
+    <!--loads dialog content from another url, then shows the dialog-->
     <script>
         function loadDialog(domId, relUrl) {
-            $(domId).load(relUrl);
-            $(domId).dialog({width: 'auto'});
+            $(domId).find('.dialog-content').load(relUrl);
+            document.querySelector(domId).showModal();
         }
     </script>
 
     <div id=tags>
 
-        <div id='create_tag_dialog' title="Create tag" style="display: none;"></div>
+        {% include 'agendjang/_dialog.html' with dialog_id='create_tag_dialog' dialog_title='Create tag' %}
         <button id="btn_create_tag" type="button"
                 onclick="loadDialog('#create_tag_dialog', 'create_tag')">New tag</button>
 
     {% for tag in tag_list %}
-        <div id="{{ tag.name }}" class="accord" >
+        <details id="{{ tag.name }}">
 
-            <h3>{{ tag.name }}</h3>
+            <summary>{{ tag.name }}</summary>
 
             <div>
             <!--necessary div to contain tasks into accordion-->
-                <div id='modify_tag_dialog' title="Modify tag" style="display: none;"></div>
+                {% include 'agendjang/_dialog.html' with dialog_id='modify_tag_dialog' dialog_suffix=tag.pk dialog_title='Modify tag' %}
                 <button id="btn_modify_tag" type="button"
-                        onclick="loadDialog('#modify_tag_dialog', 'update_tag/{{tag.pk}}')">Modify tag</button>
+                        onclick="loadDialog('#modify_tag_dialog-{{ tag.pk }}', 'update_tag/{{tag.pk}}')">Modify tag</button>
 
             {% for task in tag.task_set.all %}
                 {% if not task.done %}
                     <!--several classes split with spaces-->
                     <div class="task_div {{ task.pk }}"> {{ task.name }}
 
-                        <div id='edit_task_dialog' title="Edit task" style="display: none;"></div>
+                        {% include 'agendjang/_dialog.html' with dialog_id='edit_task_dialog' dialog_suffix=task.pk dialog_title='Edit task' %}
                             <button id="btn_edit_task" type="button"
-                                    onclick="loadDialog('#edit_task_dialog', 'update_task/{{task.pk}}' )">EDIT</button>
+                                    onclick="loadDialog('#edit_task_dialog-{{ task.pk }}', 'update_task/{{task.pk}}' )">EDIT</button>
                     </div>
 
                     <script>
@@ -76,7 +75,7 @@
             {% endfor %}
 
             </div>
-        </div>
+        </details>
     {% endfor %}
 
         <!--makes tasks draggable-->

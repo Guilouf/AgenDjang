@@ -1,0 +1,5 @@
+<dialog id="{{ dialog_id }}{% if dialog_suffix %}-{{ dialog_suffix }}{% endif %}">
+    <button type="button" class="dialog-close" onclick="this.closest('dialog').close()">&times;</button>
+    <h3>{{ dialog_title }}</h3>
+    <div class="dialog-content"></div>
+</dialog>

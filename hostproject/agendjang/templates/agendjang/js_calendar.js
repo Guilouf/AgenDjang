@@ -113,9 +113,6 @@ $(document).ready(function() {  // called when page is completely loaded
         }
     });
 
-    //load the accordiion UI for the accord class
-    $(".accord").accordion({ collapsible: true, active: false }); // keep open multiple sections
-
     $('#calendar').fullCalendar({
         editable: true,  // event on the calendar can be modified
         droppable: true, // allow external event drop
@@ -138,14 +135,15 @@ $(document).ready(function() {  // called when page is completely loaded
 
         dayClick: function(dayDate) {
 
-            $('#task_dialog').data('ajaxCall', function (){postTaskFormData(dayDate)}).load("create_task", function() { // relative url, resolver useless
-                $('#task_dialog').dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
+            $('#task_dialog').data('ajaxCall', function (){postTaskFormData(dayDate)});
+            $('#task_dialog').find('.dialog-content').load("create_task", function() { // relative url, resolver useless
                 // modify input button to send AJAX request
                 $('#task_input')
                     .attr('onclick', '$(\'#task_dialog\').data(\'ajaxCall\')()')
                     .attr('type', 'button')
                     .val('SubmitAjax')  // rename field
             });
+            document.querySelector('#task_dialog').showModal();
         },
 
         eventClick: function(event) {
@@ -154,15 +152,16 @@ $(document).ready(function() {  // called when page is completely loaded
                 .data('deleteDate', function () {
                     deleteDateRange(event.id)  // remove event in db
                     $("#calendar").fullCalendar('removeEvents', event.id);  // rm event in calendar
-                    $('#task_dialog').dialog('close') // closes dialog
-                })
+                    document.querySelector('#task_dialog').close() // closes dialog
+                });
+            $('#task_dialog').find('.dialog-content')
                 .load("update_task/"+event.taskId, function () {
                     // add unlink button to dialog
-                    $('#task_dialog')
+                    $('#task_dialog').find('.dialog-content')
                         .append("<input type=\"button\" value=\"Unlink the date\"" +
                             " onclick=\"$(\'#task_dialog\').data(\'deleteDate\')()\" />")
-                }) // relative url, resolver useless
-                .dialog({width: 'auto'});  // show jquery ui dialog, fit to loaded
+                }); // relative url, resolver useless
+            document.querySelector('#task_dialog').showModal();
         },
 
         // when dragndrop finished and datetime changed (internal event dragndrop)
