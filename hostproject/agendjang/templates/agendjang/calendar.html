@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <title>Agendjang</title>
     {% load static %}
-    <link rel='stylesheet' href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.6.1/fullcalendar.css" />
     <link rel='stylesheet' href="{% static 'css/impose_ton_style.css' %}" />
 
     <script src="//code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.6.1/fullcalendar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
 
     <!--js with django tags, in a separate view-->
     <script src="{% url 'agendjang:view_js_calendar' %}"></script>
@@ -56,20 +54,15 @@
 
             {% for task in tag.task_set.all %}
                 {% if not task.done %}
-                    <!--several classes split with spaces-->
-                    <div class="task_div {{ task.pk }}"> {{ task.name }}
-
-                        {% include 'agendjang/_dialog.html' with dialog_id='edit_task_dialog' dialog_suffix=task.pk dialog_title='Edit task' %}
+                    <!--several classes split with spaces; data-* attrs read by FullCalendar's Draggable-->
+                    <!--dialog is a sibling, not a child: FullCalendar's Draggable makes this whole div's
+                    subtree natively draggable, and a <dialog> nested inside it would have its own inputs
+                    hijacked as a drag gesture instead of receiving clicks/keystrokes normally-->
+                    <div class="task_div {{ task.pk }}" data-title="{{ task.name }}" data-task-id="{{ task.pk }}"> {{ task.name }}
                             <button id="btn_edit_task" type="button"
                                     onclick="loadDialog('#edit_task_dialog-{{ task.pk }}', 'update_task/{{task.pk}}' )">EDIT</button>
                     </div>
-
-                    <script>
-                        $('.{{ task.pk }}').data('event', {
-                            title: '{{ task.name }}',
-                            taskId: '{{ task.pk }}',
-                            stick: false});
-                    </script>
+                    {% include 'agendjang/_dialog.html' with dialog_id='edit_task_dialog' dialog_suffix=task.pk dialog_title='Edit task' %}
                 {% endif %}
 
             {% endfor %}
@@ -77,15 +70,6 @@
             </div>
         </details>
     {% endfor %}
-
-        <!--makes tasks draggable-->
-         <script>
-             $('.task_div').draggable({
-                 revert: true,      // immediately snap back to original position
-                 revertDuration: 8,  // time to snap back
-                 helper: "clone",  // correct zindex of draggable element, dunno how
-             });
-         </script>
 
     </div>
 

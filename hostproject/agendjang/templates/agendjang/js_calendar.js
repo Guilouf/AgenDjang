@@ -49,12 +49,13 @@ function remove(url, callback) {
 }
 
 function djangoDate(date) {
-    /* Wrapper for moment.js(used by fullcal),
-     here the date have always the same format even if hours missing
+    /* FullCalendar v6 hands callbacks native Date objects (not moment objects
+    like v3 did), so wrap in moment() here rather than at every call site.
+    Here the date have always the same format even if hours missing
     => 2017-11-28T13:00:00
     'T' is escaped because of a bug https://github.com/moment/moment/issues/4081
     */
-    return date.format('YYYY-MM-DD[T]HH:mm:ss');
+    return moment(date).format('YYYY-MM-DD[T]HH:mm:ss');
 }
 
 function postDaterange(start, end, taskId, callback) {
@@ -66,12 +67,13 @@ function postDaterange(start, end, taskId, callback) {
     post("{% url 'agendjang:api:dateranges-list'%}", postDateRange, callback)
 }
 
-function putDaterange(event) {
-    /*Modyfy daterange according to event data*/
+function putDaterange(event, endOverride) {
+    /*Modyfy daterange according to event data. endOverride lets eventDrop force
+    a computed end date without mutating the (read-only) FullCalendar event.*/
     let daterange = {
         start_date: djangoDate(event.start),
-        end_date: djangoDate(event.end),
-        task: event.taskId,
+        end_date: djangoDate(endOverride || event.end),
+        task: event.extendedProps.taskId,
     };
 
     // jquery .put doesnt exist.. put wrapper
@@ -89,13 +91,17 @@ function deleteDateRange(dateRangeId) {
 function postTaskFormData(date) {
     let formData = new FormData(document.querySelector('form'))
 
+    // a task created by clicking a day spans the full day (24h = allDay, per the API's own convention)
+    let end = new Date(date);
+    end.setDate(end.getDate() + 1);
+
     let xhr = new XMLHttpRequest();
     xhr.responseType = 'json';  // allow to convert formData to json automatically
     xhr.onreadystatechange = function() {  // callback
     if (xhr.readyState === XMLHttpRequest.DONE) {
         let taskId = xhr.response.id
             // call function defined in parent window
-            window.parent.postDaterange(date, date, taskId, function(response) {
+            window.parent.postDaterange(date, end, taskId, function(response) {
                 location.reload()  // refresh page
             })
         }
@@ -113,27 +119,30 @@ $(document).ready(function() {  // called when page is completely loaded
         }
     });
 
-    $('#calendar').fullCalendar({
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
         editable: true,  // event on the calendar can be modified
         droppable: true, // allow external event drop
         forceEventDuration: true, // if not all day and no end date, create default end date
-        slotLabelFormat: 'H(:mm)',  //24h date format
+        slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: true, meridiem: false },  //24h date format
         firstDay: 1, // start monday
 
-        header: {
+        headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'month,agendaWeek,agendaDay,listWeek'
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
         },
         views: { // like general option, but only apply to specific views
-            week: {
-                columnFormat: 'ddd D/M', // overrides also for month view
+            timeGridWeek: {
+                dayHeaderFormat: { weekday: 'short', month: 'numeric', day: 'numeric' },
             },
         },
 
         events: "{% url 'agendjang:api:events-list'%}", // fullcalendar handles the call format
 
-        dayClick: function(dayDate) {
+        dateClick: function(info) {
+            const dayDate = info.date;
 
             $('#task_dialog').data('ajaxCall', function (){postTaskFormData(dayDate)});
             $('#task_dialog').find('.dialog-content').load("create_task", function() { // relative url, resolver useless
@@ -146,16 +155,17 @@ $(document).ready(function() {  // called when page is completely loaded
             document.querySelector('#task_dialog').showModal();
         },
 
-        eventClick: function(event) {
+        eventClick: function(info) {
+            const event = info.event;
             $('#task_dialog')
                 // callback called when pressing dialog unlink date button
                 .data('deleteDate', function () {
                     deleteDateRange(event.id)  // remove event in db
-                    $("#calendar").fullCalendar('removeEvents', event.id);  // rm event in calendar
+                    event.remove();  // rm event in calendar
                     document.querySelector('#task_dialog').close() // closes dialog
                 });
             $('#task_dialog').find('.dialog-content')
-                .load("update_task/"+event.taskId, function () {
+                .load("update_task/"+event.extendedProps.taskId, function () {
                     // add unlink button to dialog
                     $('#task_dialog').find('.dialog-content')
                         .append("<input type=\"button\" value=\"Unlink the date\"" +
@@ -165,30 +175,48 @@ $(document).ready(function() {  // called when page is completely loaded
         },
 
         // when dragndrop finished and datetime changed (internal event dragndrop)
-        eventDrop: function(event, delta, revertFunc) {
+        eventDrop: function(info) {
+            const event = info.event;
+            let end = event.end;
             if (event.allDay) {  // in our data model, an event is considered all day if it last 24hours
                 // in fullcalendar, an allDay event just takes into account "start" and "allDay=true"
-                event.end = new moment(event.start)
-                event.end.add(1, 'days')
+                end = new Date(event.start);
+                end.setDate(end.getDate() + 1);
             }
-            putDaterange(event)
+            putDaterange(event, end)
         },
 
         // when timestamp resize is finished and time changed
-        eventResize: function(event, delta, revertFunc) {
-            putDaterange(event)
+        eventResize: function(info) {
+            putDaterange(info.event)
         },
 
         // drop callback only for low level drop data, this gets the external dropped event
-        eventReceive: function(event, view) {
+        eventReceive: function(info) {
+            const event = info.event;
 
             // post a new daterange, but if form is cancelled it's keeped in db
-            postDaterange(event.start, event.end, event.taskId, function(response) {
-                event.id = response.id; // id of event is id of daterange
-                $("#calendar").fullCalendar("refetchEvents"); // refresh events from server
+            postDaterange(event.start, event.end, event.extendedProps.taskId, function(response) {
+                // FullCalendar already auto-inserted its own client-side copy of this event on drop;
+                // remove it before refetching, otherwise both it and the server's authoritative
+                // version would be shown side by side until the next full page load
+                event.remove();
+                calendar.refetchEvents();
             });
         },
 
-    })
+    });
+    calendar.render();
+
+    // makes tasks in the tag sidebar draggable onto the calendar
+    new FullCalendar.Draggable(document.getElementById('tags'), {
+        itemSelector: '.task_div',
+        eventData: function(eventEl) {
+            return {
+                title: eventEl.dataset.title,
+                extendedProps: { taskId: eventEl.dataset.taskId },
+            };
+        }
+    });
 
 });
