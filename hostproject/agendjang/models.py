@@ -13,7 +13,7 @@ class Task(models.Model):
     Procrastinated task
     """
     name = models.CharField(max_length=100)
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField(blank=True)
     done = models.BooleanField(default=False)
     archive = models.BooleanField(default=False)
     points = models.IntegerField(default=1)
@@ -41,7 +41,7 @@ class DateRange(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField(blank=True)
 
     def __str__(self):
         return f"Tag {self.name}"

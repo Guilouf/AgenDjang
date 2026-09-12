@@ -13,7 +13,7 @@ class TaskModelTest(TestCase):
         self.assertFalse(task.done)
         self.assertFalse(task.archive)
         self.assertEqual(task.points, 1)
-        self.assertIsNone(task.description)
+        self.assertEqual(task.description, '')
 
     def test_str(self):
         task = Task.objects.create(name="Do dishes")
