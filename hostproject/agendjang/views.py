@@ -53,6 +53,8 @@ class EventViewSet(viewsets.ViewSet):
                 'title': daterange.task.name,
                 'start': daterange.start_date,
                 'end': daterange.end_date,
+                # known limitation (won't fix): on DST-change days a local day lasts 23h or 25h,
+                # so all-day tasks created on those days show as timed events
                 'allDay': daterange.end_date - daterange.start_date == timedelta(hours=24),
                 'color': 'red' if (not daterange.task.done and timezone.now() > daterange.end_date) else 'green',
             }
