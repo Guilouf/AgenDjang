@@ -34,15 +34,9 @@ class DateRangeViewSet(viewsets.ModelViewSet):
 
 class EventViewSet(viewsets.ViewSet):
     def list(self, request):
-        """With calendar month view, 'start' and 'end' params are dates,
-         but in week and day views they are datetime.
-         We parse only the date part of the date, because reducing results with hour precision is useless"""
-        start = request.query_params.get('start')
-        end = request.query_params.get('end')
-
-        # parse the first part of the string, containing only the date (ignore time string)
-        start = timezone.make_aware(datetime.strptime(start[0:10], '%Y-%m-%d'))
-        end = timezone.make_aware(datetime.strptime(end[0:10], '%Y-%m-%d'))
+        """'start' and 'end' params are ISO datetimes with the browser's UTC offset"""
+        start = datetime.fromisoformat(request.query_params.get('start'))
+        end = datetime.fromisoformat(request.query_params.get('end'))
 
         # overlap, not containment: a daterange that only partially overlaps the
         # requested window must still be returned (the calendar widget clips it itself)

@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta, UTC
 
 from django.urls import reverse
 from django.utils import timezone
@@ -92,8 +92,8 @@ class EventApiTest(APITestCase):
         self.today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
     def get_events(self, start=None, end=None):
-        query_start = (self.today - timedelta(days=10)).strftime('%Y-%m-%d')
-        query_end = (self.today + timedelta(days=10)).strftime('%Y-%m-%d')
+        query_start = (self.today - timedelta(days=10)).isoformat()
+        query_end = (self.today + timedelta(days=10)).isoformat()
 
         return self.client.get(reverse('agendjang:api:events-list'), {
             'start': start or query_start,
@@ -201,20 +201,20 @@ class EventApiTest(APITestCase):
 
         self.assertEqual(len(response.data), 1)
 
-    def test_only_the_date_part_of_start_and_end_params_is_used(self):
-        """Week/day views send full datetimes; the view should truncate
-        them to the date part instead of erroring out."""
-        task = Task.objects.create(name="Task")
+    def test_window_start_respects_the_utc_offset(self):
+        """The window follows the browser's offset, not the server's TIME_ZONE:
+        01:30 in Tokyo on the 30th is stored as 16:30Z on the 29th, so it must be
+        returned when a Tokyo browser asks for its day of the 30th."""
+        task = Task.objects.create(name="Early morning")
         DateRange.objects.create(
-            start_date=self.today,
-            end_date=self.today + timedelta(days=1),
+            start_date=datetime(2026, 9, 29, 16, 30, tzinfo=UTC),
+            end_date=datetime(2026, 9, 29, 17, 0, tzinfo=UTC),
             task=task,
         )
 
         response = self.get_events(
-            start=self.today.strftime('%Y-%m-%dT00:00:00'),
-            end=(self.today + timedelta(days=1)).strftime('%Y-%m-%dT23:59:59'),
+            start='2026-09-30T00:00:00+09:00',  # Tokyo time
+            end='2026-10-01T00:00:00+09:00',
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
