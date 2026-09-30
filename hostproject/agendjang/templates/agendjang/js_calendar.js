@@ -56,21 +56,10 @@ function remove(url, callback) {
         .then(callback);
 }
 
-function djangoDate(date) {
-    /* Build a fixed-format datetime string for the Django API from a native Date,
-    using local time components, even when the date has no meaningful time part
-    (e.g. midnight from a day click)
-    => 2017-11-28T13:00:00
-    */
-    const pad = n => String(n).padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
-        `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-}
-
 function postDaterange(start, end, taskId, callback) {
     let postDateRange = {
-            start_date: djangoDate(start),
-            end_date: djangoDate(end),
+            start_date: start.toISOString(),
+            end_date: end.toISOString(),
             task: taskId,
         };
     post("{% url 'agendjang:api:dateranges-list'%}", postDateRange, callback)
@@ -80,8 +69,8 @@ function putDaterange(event, endOverride) {
     /*Modyfy daterange according to event data. endOverride lets eventDrop force
     a computed end date without mutating the (read-only) FullCalendar event.*/
     let daterange = {
-        start_date: djangoDate(event.start),
-        end_date: djangoDate(endOverride || event.end),
+        start_date: event.start.toISOString(),
+        end_date: (endOverride || event.end).toISOString(),
         task: event.extendedProps.taskId,
     };
 
@@ -124,7 +113,8 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
         editable: true,  // event on the calendar can be modified
         droppable: true, // allow external event drop
         forceEventDuration: true, // if not all day and no end date, create default end date
-        slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: true, meridiem: false },  //24h date format
+        slotLabelFormat: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },  // 24h time format
+        eventTimeFormat: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },
         firstDay: 1, // start monday
 
         headerToolbar: {
