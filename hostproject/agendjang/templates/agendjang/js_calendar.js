@@ -124,7 +124,8 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
         editable: true,  // event on the calendar can be modified
         droppable: true, // allow external event drop
         forceEventDuration: true, // if not all day and no end date, create default end date
-        slotLabelFormat: { hour: 'numeric', minute: '2-digit', omitZeroMinute: true, meridiem: false },  //24h date format
+        slotLabelFormat: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },  // 24h time format
+        eventTimeFormat: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },
         firstDay: 1, // start monday
 
         headerToolbar: {
