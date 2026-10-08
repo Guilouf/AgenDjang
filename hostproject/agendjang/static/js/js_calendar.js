@@ -113,9 +113,14 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
         events: urls.eventsUrl, // fullcalendar handles the call format
 
         dateClick: function(info) {
-            // a task created by clicking a day spans the full day (24h = allDay, per the API's own convention)
+            // a task created by clicking a day spans the full day (24h = allDay, per the API's own convention),
+            // while clicking a time slot (day and week views) creates a one hour event
             const end = new Date(info.date);
-            end.setDate(end.getDate() + 1);
+            if (info.allDay) {
+                end.setDate(end.getDate() + 1);
+            } else {
+                end.setHours(end.getHours() + 1);
+            }
 
             const dateRange = new URLSearchParams({ start_date: info.date.toISOString(), end_date: end.toISOString() });
             htmx.ajax('GET', 'create_task?' + dateRange, '#dialog-content');
