@@ -8,8 +8,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
 
-    <!--js with django tags, in a separate view-->
-    <script src="{% url 'agendjang:view_js_calendar' %}"></script>
+    <!--api urls are handed to the static js through data-* attributes-->
+    <script src="{% static 'js/js_calendar.js' %}"
+            data-dateranges-url="{% url 'agendjang:api:dateranges-list' %}"
+            data-tasks-url="{% url 'agendjang:api:tasks-list' %}"
+            data-events-url="{% url 'agendjang:api:events-list' %}"></script>
 
 </head>
 

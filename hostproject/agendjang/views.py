@@ -106,8 +106,3 @@ class CalendarView(TemplateView):
         ctx = super().get_context_data(**kwargs)
         ctx['tag_list'] = Tag.objects.all()
         return ctx
-
-
-class JavascriptCalendarView(TemplateView):
-    template_name = 'agendjang/js_calendar.js'
-    content_type = 'text/javascript'

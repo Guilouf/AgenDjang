@@ -39,14 +39,6 @@ class CalendarViewTest(TestCase):
         self.assertNotContains(response, "Archived task")
 
 
-class JavascriptCalendarViewTest(TestCase):
-    def test_renders_as_javascript(self):
-        response = self.client.get(reverse('agendjang:view_js_calendar'))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'], 'text/javascript')
-
-
 class HelpViewTest(TestCase):
     def test_renders_markdown_help_file_as_html(self):
         response = self.client.get(reverse('agendjang:help'))

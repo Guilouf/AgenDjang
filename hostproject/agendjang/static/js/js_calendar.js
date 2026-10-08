@@ -1,4 +1,6 @@
-// template dynamic js, why not,
+// API urls are resolved by django and passed as data-* attributes on this script's tag;
+// document.currentScript is only set while the script is first executing, so read them now
+const urls = document.currentScript.dataset;
 
 function getCookie(name) {
     /*from django docs. parse cookie*/
@@ -62,7 +64,7 @@ function postDaterange(start, end, taskId, callback) {
             end_date: end.toISOString(),
             task: taskId,
         };
-    post("{% url 'agendjang:api:dateranges-list'%}", postDateRange, callback)
+    post(urls.daterangesUrl, postDateRange, callback)
 }
 
 function putDaterange(event, endOverride) {
@@ -75,13 +77,13 @@ function putDaterange(event, endOverride) {
     };
 
     // jquery .put doesnt exist.. put wrapper
-    put("{% url 'agendjang:api:dateranges-list'%}"+event.id+'/', daterange,
+    put(urls.daterangesUrl+event.id+'/', daterange,
         function(data) {}
     );
 }
 
 function deleteDateRange(dateRangeId) {
-    remove("{% url 'agendjang:api:dateranges-list'%}"+dateRangeId+'/',
+    remove(urls.daterangesUrl+dateRangeId+'/',
         function(data) {}
     );
 }
@@ -95,7 +97,7 @@ function postTaskFormData(date) {
     let end = new Date(date);
     end.setDate(end.getDate() + 1);
 
-    fetch("{% url 'agendjang:api:tasks-list' %}", { method: 'POST', body: formData })
+    fetch(urls.tasksUrl, { method: 'POST', body: formData })
         .then(response => response.ok ? response.json() : null)
         .then(task => {
             if (!task) return;  // validation failed; leave the dialog open instead of silently proceeding
@@ -128,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
             },
         },
 
-        events: "{% url 'agendjang:api:events-list'%}", // fullcalendar handles the call format
+        events: urls.eventsUrl, // fullcalendar handles the call format
 
         dateClick: function(info) {
             const dayDate = info.date;

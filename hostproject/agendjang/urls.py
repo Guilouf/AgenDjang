@@ -22,7 +22,6 @@ urlpatterns = [
 
     # calendars
     path('', views.CalendarView.as_view(), name='view_calendar'),
-    path('js_calendar', views.JavascriptCalendarView.as_view(), name='view_js_calendar'),
 
     # Tasks
     path('create_task', views.TaskCreate.as_view(), name='create_task'),
