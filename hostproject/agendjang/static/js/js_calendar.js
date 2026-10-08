@@ -76,7 +76,6 @@ function putDaterange(event, endOverride) {
         task: event.extendedProps.taskId,
     };
 
-    // jquery .put doesnt exist.. put wrapper
     put(urls.daterangesUrl+event.id+'/', daterange,
         function(data) {}
     );
@@ -86,6 +85,20 @@ function deleteDateRange(dateRangeId) {
     remove(urls.daterangesUrl+dateRangeId+'/',
         function(data) {}
     );
+}
+
+// loads dialog content from another url, then shows the dialog;
+// resolves with the dialog's content element once it's filled
+function loadDialog(domId, relUrl) {
+    const dialog = document.querySelector(domId);
+    const content = dialog.querySelector('.dialog-content');
+    dialog.showModal();
+    return fetch(relUrl)
+        .then(response => response.text())
+        .then(html => {
+            content.innerHTML = html;
+            return content;
+        });
 }
 
 function postTaskFormData(date) {
@@ -101,7 +114,7 @@ function postTaskFormData(date) {
         .then(response => response.ok ? response.json() : null)
         .then(task => {
             if (!task) return;  // validation failed; leave the dialog open instead of silently proceeding
-            window.parent.postDaterange(date, end, task.id, function(response) {
+            postDaterange(date, end, task.id, function(response) {
                 location.reload()  // refresh page
             })
         });
@@ -133,31 +146,20 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
         events: urls.eventsUrl, // fullcalendar handles the call format
 
         dateClick: function(info) {
-            const dayDate = info.date;
-            const dialog = document.querySelector('#task_dialog');
-
-            fetch("create_task") // relative url, resolver useless
-                .then(response => response.text())
-                .then(html => {
-                    dialog.querySelector('.dialog-content').innerHTML = html;
+            loadDialog('#task_dialog', 'create_task')
+                .then(content => {
                     // modify input button to send AJAX request instead of a normal form submit
-                    const submitBtn = document.querySelector('#task_input');
+                    const submitBtn = content.querySelector('#task_input');
                     submitBtn.type = 'button';
-                    submitBtn.value = 'SubmitAjax';  // rename field
-                    submitBtn.onclick = () => postTaskFormData(dayDate);
+                    submitBtn.onclick = () => postTaskFormData(info.date);
                 });
-            dialog.showModal();
         },
 
         eventClick: function(info) {
             const event = info.event;
-            const dialog = document.querySelector('#task_dialog');
 
-            fetch("update_task/"+event.extendedProps.taskId) // relative url, resolver useless
-                .then(response => response.text())
-                .then(html => {
-                    const content = dialog.querySelector('.dialog-content');
-                    content.innerHTML = html;
+            loadDialog('#task_dialog', 'update_task/'+event.extendedProps.taskId)
+                .then(content => {
                     // add unlink button to dialog
                     const unlinkBtn = document.createElement('input');
                     unlinkBtn.type = 'button';
@@ -165,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
                     unlinkBtn.onclick = function () {
                         deleteDateRange(event.id)  // remove event in db
                         event.remove();  // rm event in calendar
-                        dialog.close()  // closes dialog
+                        content.closest('dialog').close()  // closes dialog
                     };
                     content.appendChild(unlinkBtn);
                 });

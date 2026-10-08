@@ -16,28 +16,11 @@
 
 </head>
 
-<footer>
-    {% include 'agendjang/_dialog.html' with dialog_id='help_page' dialog_title='Help Page' %}
-    <button id="btn_help" type="button"
-            onclick="loadDialog('#help_page', 'help')">Help</button>
-</footer>
-
 <body>
     <!--content loaded on demand; called by eventClick in js_calendar-->
     {% include 'agendjang/_dialog.html' with dialog_id='task_dialog' dialog_title='Edit task' %}
 
     <div id='calendar'></div>
-
-    <!--loads dialog content from another url, then shows the dialog-->
-    <script>
-        function loadDialog(domId, relUrl) {
-            const dialog = document.querySelector(domId);
-            fetch(relUrl)
-                .then(response => response.text())
-                .then(html => { dialog.querySelector('.dialog-content').innerHTML = html; });
-            dialog.showModal();
-        }
-    </script>
 
     <div id=tags>
 
@@ -46,14 +29,14 @@
                 onclick="loadDialog('#create_tag_dialog', 'create_tag')">New tag</button>
 
     {% for tag in tag_list %}
-        <details id="{{ tag.name }}">
+        <details>
 
             <summary>{{ tag.name }}</summary>
 
             <div>
             <!--necessary div to contain tasks into accordion-->
                 {% include 'agendjang/_dialog.html' with dialog_id='modify_tag_dialog' dialog_suffix=tag.pk dialog_title='Modify tag' %}
-                <button id="btn_modify_tag" type="button"
+                <button type="button"
                         onclick="loadDialog('#modify_tag_dialog-{{ tag.pk }}', 'update_tag/{{tag.pk}}')">Modify tag</button>
 
             {% for task in tag.task_set.all %}
@@ -63,7 +46,7 @@
                     subtree natively draggable, and a <dialog> nested inside it would have its own inputs
                     hijacked as a drag gesture instead of receiving clicks/keystrokes normally-->
                     <div class="task_div {{ task.pk }}" data-title="{{ task.name }}" data-task-id="{{ task.pk }}"> {{ task.name }}
-                            <button id="btn_edit_task" type="button"
+                            <button type="button"
                                     onclick="loadDialog('#edit_task_dialog-{{ task.pk }}', 'update_task/{{task.pk}}' )">EDIT</button>
                     </div>
                     {% include 'agendjang/_dialog.html' with dialog_id='edit_task_dialog' dialog_suffix=task.pk dialog_title='Edit task' %}
@@ -76,6 +59,12 @@
     {% endfor %}
 
     </div>
+
+    <footer>
+        {% include 'agendjang/_dialog.html' with dialog_id='help_page' dialog_title='Help Page' %}
+        <button id="btn_help" type="button"
+                onclick="loadDialog('#help_page', 'help')">Help</button>
+    </footer>
 
 </body>
 
