@@ -1,13 +1,14 @@
 from pathlib import Path
 
+from django.db import transaction
 from django.http import HttpResponse
 from django.views.generic import TemplateView, CreateView, UpdateView
 from django.utils import timezone
 from django.urls import reverse_lazy
 
 from agendjang.models import Task, DateRange, Tag
-from agendjang.forms import TaskForm, TagForm
-from agendjang.serializers import TaskSerializer, DateRangeSerializer, EventSerializer
+from agendjang.forms import TaskForm, TaskCreateForm, TagForm
+from agendjang.serializers import DateRangeSerializer, EventSerializer
 
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -20,11 +21,6 @@ from datetime import timedelta, datetime
 #######
 # API #
 #######
-
-
-class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
-    serializer_class = TaskSerializer
 
 
 class DateRangeViewSet(viewsets.ModelViewSet):
@@ -77,8 +73,23 @@ def help_view(request):
 
 class TaskCreate(CreateView):
     model = Task
-    form_class = TaskForm
+    form_class = TaskCreateForm
     success_url = reverse_lazy('agendjang:view_calendar')
+
+    def get_initial(self):
+        # the calendar passes the clicked day's range as query params
+        return self.request.GET.dict()
+
+    def form_valid(self, form):
+        # No Task left without its DateRange on this view
+        with transaction.atomic():
+            response = super().form_valid(form)
+            DateRange.objects.create(
+                task=self.object,
+                start_date=form.cleaned_data['start_date'],
+                end_date=form.cleaned_data['end_date'],
+            )
+        return response
 
 
 class TaskUpdate(UpdateView):
@@ -99,10 +110,15 @@ class TagUpdate(UpdateView):
     success_url = reverse_lazy('agendjang:view_calendar')
 
 
-class CalendarView(TemplateView):
-    template_name = 'agendjang/calendar.html'
+class TagListView(TemplateView):
+    """Sidebar of tags and their tasks, reloaded on its own after each form submit"""
+    template_name = 'agendjang/_tag_list.html'
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['tag_list'] = Tag.objects.all()
         return ctx
+
+
+class CalendarView(TagListView):
+    template_name = 'agendjang/calendar.html'

@@ -1,7 +1,9 @@
+from datetime import datetime, UTC
+
 from django.test import TestCase
 from django.urls import reverse
 
-from agendjang.models import Task, Tag
+from agendjang.models import Task, Tag, DateRange
 
 
 class CalendarViewTest(TestCase):
@@ -39,6 +41,41 @@ class CalendarViewTest(TestCase):
         self.assertNotContains(response, "Archived task")
 
 
+class TagListViewTest(TestCase):
+    def test_renders_only_the_tags_sidebar(self):
+        tag = Tag.objects.create(name="Home")
+
+        response = self.client.get(reverse('agendjang:tag_list'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'agendjang/_tag_list.html')
+        self.assertTemplateNotUsed(response, 'agendjang/calendar.html')
+        self.assertIn(tag, response.context['tag_list'])
+
+    def test_only_non_done_tasks_of_a_tag_are_listed(self):
+        """This is reloaded by the js after each form submit, so it must filter
+        tasks the same way the full calendar page does."""
+        tag = Tag.objects.create(name="Home")
+        todo = Task.objects.create(name="Todo task")
+        todo.many_tags.add(tag)
+        done = Task.objects.create(name="Done task", done=True)
+        done.many_tags.add(tag)
+
+        response = self.client.get(reverse('agendjang:tag_list'))
+
+        self.assertContains(response, "Todo task")
+        self.assertNotContains(response, "Done task")
+
+    def test_archived_tasks_of_a_tag_are_not_listed(self):
+        tag = Tag.objects.create(name="Home")
+        archived = Task.objects.create(name="Archived task", archive=True)
+        archived.many_tags.add(tag)
+
+        response = self.client.get(reverse('agendjang:tag_list'))
+
+        self.assertNotContains(response, "Archived task")
+
+
 class HelpViewTest(TestCase):
     def test_renders_markdown_help_file_as_html(self):
         response = self.client.get(reverse('agendjang:help'))
@@ -48,27 +85,38 @@ class HelpViewTest(TestCase):
 
 
 class TaskCreateUpdateViewTest(TestCase):
-    def test_get_create_form(self):
-        response = self.client.get(reverse('agendjang:create_task'))
-        self.assertEqual(response.status_code, 200)
+    # dates as sent by the calendar's javascript (Date.toISOString)
+    DATE_RANGE = {'start_date': '2026-10-07T22:00:00.000Z', 'end_date': '2026-10-08T22:00:00.000Z'}
 
-    def test_post_creates_task_and_redirects_to_calendar(self):
+    def test_get_create_form_is_prefilled_with_the_date_range(self):
+        response = self.client.get(reverse('agendjang:create_task'), self.DATE_RANGE)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'value="2026-10-07T22:00:00.000Z"')
+        self.assertContains(response, 'value="2026-10-08T22:00:00.000Z"')
+
+    def test_post_creates_task_linked_to_its_date_range_and_redirects_to_calendar(self):
         response = self.client.post(
             reverse('agendjang:create_task'),
             data={
                 'name': 'New task',
                 'points': 3,
+                **self.DATE_RANGE,
             }
         )
 
         self.assertRedirects(response, reverse('agendjang:view_calendar'))
-        self.assertTrue(Task.objects.filter(name='New task', points=3).exists())
+        task = Task.objects.get(name='New task', points=3)
+        daterange = DateRange.objects.get(task=task)
+        self.assertEqual(daterange.start_date, datetime(2026, 10, 7, 22, tzinfo=UTC))
+        self.assertEqual(daterange.end_date, datetime(2026, 10, 8, 22, tzinfo=UTC))
 
     def test_post_invalid_data_does_not_create_task(self):
-        response = self.client.post(reverse('agendjang:create_task'), data={'points': 3})
+        response = self.client.post(reverse('agendjang:create_task'), data={'points': 3, **self.DATE_RANGE})
 
         self.assertEqual(response.status_code, 200)  # re-renders form with errors
         self.assertEqual(Task.objects.count(), 0)
+        self.assertEqual(DateRange.objects.count(), 0)
 
         errors = response.context['form'].errors.as_data()
         self.assertEqual(errors.keys(), {'name'})

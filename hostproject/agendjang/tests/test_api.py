@@ -8,45 +8,6 @@ from rest_framework.test import APITestCase
 from agendjang.models import Task, DateRange
 
 
-class TaskApiTest(APITestCase):
-    def test_list_excludes_archived_tasks(self):
-        active = Task.objects.create(name="Active")
-        Task.objects.create(name="Archived", archive=True)
-
-        response = self.client.get(reverse('agendjang:api:tasks-list'))
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        ids = [t['id'] for t in response.data]
-        self.assertEqual(ids, [active.id])
-
-    def test_retrieve_archived_task_is_not_found(self):
-        """The viewset's queryset is Task.objects.all(), which is already
-        filtered by the custom manager, so this applies to every action,
-        not just list()."""
-        archived = Task.objects.create(name="Archived", archive=True)
-
-        response = self.client.get(reverse('agendjang:api:tasks-detail', args=[archived.pk]))
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_create_task(self):
-        response = self.client.post(reverse('agendjang:api:tasks-list'), data={
-            'name': 'New task',
-            'points': 2,
-        })
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Task.objects.filter(name='New task', points=2).exists())
-
-    def test_delete_task(self):
-        task = Task.objects.create(name="To delete")
-
-        response = self.client.delete(reverse('agendjang:api:tasks-detail', args=[task.pk]))
-
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Task.objects.filter(pk=task.pk).exists())
-
-
 class DateRangeApiTest(APITestCase):
     def setUp(self):
         self.task = Task.objects.create(name="Task")

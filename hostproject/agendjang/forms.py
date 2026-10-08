@@ -17,3 +17,9 @@ class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
         fields = '__all__'
+
+
+class TaskCreateForm(TaskForm):
+    """Task form that also schedules the new task, on the calendar day it was created from"""
+    start_date = forms.DateTimeField(widget=forms.HiddenInput)
+    end_date = forms.DateTimeField(widget=forms.HiddenInput)

@@ -6,8 +6,7 @@ from rest_framework import routers
 # For DRF:
 router = routers.DefaultRouter()
 # no regex here
-router.register(r'tasks', views.TaskViewSet, basename='tasks')  # basename for reverse url tags
-router.register(r'dateranges', views.DateRangeViewSet, basename='dateranges')
+router.register(r'dateranges', views.DateRangeViewSet, basename='dateranges')  # basename for reverse url tags
 router.register(r'events', views.EventViewSet, basename='events')
 
 # https://docs.djangoproject.com/en/stable/intro/tutorial03/#namespacing-url-names
@@ -22,6 +21,7 @@ urlpatterns = [
 
     # calendars
     path('', views.CalendarView.as_view(), name='view_calendar'),
+    path('tags', views.TagListView.as_view(), name='tag_list'),
 
     # Tasks
     path('create_task', views.TaskCreate.as_view(), name='create_task'),
