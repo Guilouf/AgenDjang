@@ -1,5 +1,7 @@
-<form action="{{ request.path }}" method="post" enctype="multipart/form-data">
+<form hx-post="{{ request.path }}" hx-target="this" hx-swap="outerHTML" enctype="multipart/form-data">
     <!--request.path because when called from a different url-->
+    <!--the title is part of the form, since the form alone is swapped when re-rendered with errors-->
+    <h3>{% if object %}Edit{% else %}Create{% endif %} tag</h3>
     <table>
         {% csrf_token %}
         {{ form.as_table }}

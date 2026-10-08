@@ -52,51 +52,37 @@ function persistChange(request, revert) {
         .finally(() => calendar.refetchEvents());
 }
 
-// reloads the tags sidebar, keeping its accordions open state
+// reloads the tags sidebar through htmx, so its buttons get their hx-get processed,
+// keeping its accordions open state
 function reloadTagList() {
     const tagList = document.getElementById('tag_list');
     const openTagIds = [...tagList.querySelectorAll('details[open]')].map(details => details.dataset.tagId);
 
-    fetch(urls.tagListUrl)
-        .then(response => response.text())
-        .then(html => {
-            tagList.innerHTML = html;
+    htmx.ajax('GET', urls.tagListUrl, tagList)
+        .then(() => {
             openTagIds.forEach(tagId => tagList.querySelector(`details[data-tag-id="${tagId}"]`).open = true);
         });
 }
 
-// loads dialog content from another url, then shows the dialog;
-// resolves with the dialog's content element once it's filled
-function loadDialog(domId, relUrl) {
-    const dialog = document.querySelector(domId);
-    const content = dialog.querySelector('.dialog-content');
-    dialog.showModal();
-    return fetch(relUrl)
-        .then(response => response.text())
-        .then(html => {
-            content.innerHTML = html;
-            return content;
-        });
-}
+// the dialog is shown once htmx filled it; swaps within its content (e.g. a form
+// re-rendered with errors) bubble up here too, and must not show it again
+document.addEventListener('htmx:afterSwap', function(swapEvent) {
+    if (swapEvent.target.id === 'dialog-content') {
+        document.getElementById('dialog').showModal();
+    }
+});
 
-// dialog forms are posted to their classic django form view without leaving the page: the view
-// redirects on success (not followed, the redirect target is the whole calendar page),
-// otherwise it answers with the form re-rendered with its errors
-document.addEventListener('submit', function(submitEvent) {
-    submitEvent.preventDefault();
-    const form = submitEvent.target;
-
-    fetch(form.action, { method: 'POST', body: new FormData(form), redirect: 'manual' })
-        .then(response => {
-            if (response.type === 'opaqueredirect') {
-                form.closest('dialog').close();
-                calendar.refetchEvents();
-                reloadTagList();
-            } else {
-                // only the form is replaced, so buttons added next to it (e.g. unlink) are kept
-                return response.text().then(html => form.outerHTML = html);
-            }
-        });
+// dialog forms are posted by htmx to their classic django form view: on success the view redirects,
+// so the response comes from another url than the posted one, and that page is thrown away;
+// otherwise the view answers with the form re-rendered with its errors, swapped in place of the form
+document.addEventListener('htmx:beforeSwap', function(swapEvent) {
+    const pathInfo = swapEvent.detail.pathInfo;
+    if (swapEvent.target.tagName === 'FORM' && pathInfo.responsePath !== pathInfo.requestPath) {
+        swapEvent.detail.shouldSwap = false;
+        document.getElementById('dialog').close();
+        calendar.refetchEvents();
+        reloadTagList();
+    }
 });
 
 let calendar;
@@ -132,14 +118,15 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
             end.setDate(end.getDate() + 1);
 
             const dateRange = new URLSearchParams({ start_date: info.date.toISOString(), end_date: end.toISOString() });
-            loadDialog('#task_dialog', 'create_task?' + dateRange);
+            htmx.ajax('GET', 'create_task?' + dateRange, '#dialog-content');
         },
 
         eventClick: function(info) {
             const event = info.event;
 
-            loadDialog('#task_dialog', 'update_task/'+event.extendedProps.taskId)
-                .then(content => {
+            htmx.ajax('GET', 'update_task/'+event.extendedProps.taskId, '#dialog-content')
+                .then(() => {
+                    const content = document.getElementById('dialog-content');
                     // add unlink button to dialog
                     const unlinkBtn = document.createElement('input');
                     unlinkBtn.type = 'button';

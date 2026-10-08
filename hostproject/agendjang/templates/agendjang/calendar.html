@@ -7,6 +7,7 @@
     <link rel='stylesheet' href="{% static 'css/impose_ton_style.css' %}" />
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
 
     <!--api urls are handed to the static js through data-* attributes-->
     <script src="{% static 'js/js_calendar.js' %}"
@@ -16,17 +17,18 @@
 
 </head>
 
-<body>
-    <!--content loaded on demand; called by eventClick in js_calendar-->
-    {% include 'agendjang/_dialog.html' with dialog_id='task_dialog' dialog_title='Edit task' %}
+<!--every hx-get button loads its content into the dialog, shown by js_calendar once filled-->
+<body hx-target="#dialog-content">
+    <dialog id="dialog">
+        <button type="button" class="dialog-close" onclick="this.closest('dialog').close()">&times;</button>
+        <div id="dialog-content"></div>
+    </dialog>
 
     <div id='calendar'></div>
 
     <div id=tags>
 
-        {% include 'agendjang/_dialog.html' with dialog_id='create_tag_dialog' dialog_title='Create tag' %}
-        <button id="btn_create_tag" type="button"
-                onclick="loadDialog('#create_tag_dialog', 'create_tag')">New tag</button>
+        <button id="btn_create_tag" type="button" hx-get="create_tag">New tag</button>
 
     <!--reloaded by the js after each form submit; Draggable listens on #tags, so it keeps working-->
     <div id="tag_list">
@@ -36,9 +38,7 @@
     </div>
 
     <footer>
-        {% include 'agendjang/_dialog.html' with dialog_id='help_page' dialog_title='Help Page' %}
-        <button id="btn_help" type="button"
-                onclick="loadDialog('#help_page', 'help')">Help</button>
+        <button id="btn_help" type="button" hx-get="help">Help</button>
     </footer>
 
 </body>

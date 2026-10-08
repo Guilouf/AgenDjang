@@ -6,21 +6,14 @@
 
         <div>
         <!--necessary div to contain tasks into accordion-->
-            {% include 'agendjang/_dialog.html' with dialog_id='modify_tag_dialog' dialog_suffix=tag.pk dialog_title='Modify tag' %}
-            <button type="button"
-                    onclick="loadDialog('#modify_tag_dialog-{{ tag.pk }}', 'update_tag/{{tag.pk}}')">Modify tag</button>
+            <button type="button" hx-get="update_tag/{{ tag.pk }}">Modify tag</button>
 
         {% for task in tag.task_set.all %}
             {% if not task.done %}
                 <!--several classes split with spaces; data-* attrs read by FullCalendar's Draggable-->
-                <!--dialog is a sibling, not a child: FullCalendar's Draggable makes this whole div's
-                subtree natively draggable, and a <dialog> nested inside it would have its own inputs
-                hijacked as a drag gesture instead of receiving clicks/keystrokes normally-->
                 <div class="task_div {{ task.pk }}" data-title="{{ task.name }}" data-task-id="{{ task.pk }}"> {{ task.name }}
-                        <button type="button"
-                                onclick="loadDialog('#edit_task_dialog-{{ task.pk }}', 'update_task/{{task.pk}}' )">EDIT</button>
+                        <button type="button" hx-get="update_task/{{ task.pk }}">EDIT</button>
                 </div>
-                {% include 'agendjang/_dialog.html' with dialog_id='edit_task_dialog' dialog_suffix=task.pk dialog_title='Edit task' %}
             {% endif %}
 
         {% endfor %}
