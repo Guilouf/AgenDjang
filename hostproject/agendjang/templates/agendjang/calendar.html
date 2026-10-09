@@ -9,11 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
 
-    <!--api urls are handed to the static js through data-* attributes-->
+    <!--api urls and the csrf token are handed to the static js through data-* attributes -->
     <script src="{% static 'js/js_calendar.js' %}"
             data-dateranges-url="{% url 'agendjang:api:dateranges-list' %}"
             data-tag-list-url="{% url 'agendjang:tag_list' %}"
-            data-events-url="{% url 'agendjang:api:events-list' %}"></script>
+            data-events-url="{% url 'agendjang:api:events-list' %}"
+            data-csrf-token="{% csrf_token %}">
+    </script>
 
 </head>
 

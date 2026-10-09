@@ -2,30 +2,13 @@
 // document.currentScript is only set while the script is first executing, so read them now
 const urls = document.currentScript.dataset;
 
-function getCookie(name) {
-    /*from django docs. parse cookie*/
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
 // JSON request to the REST API; leave trailing / on url. Rejects when the backend refuses the change
 function apiRequest(method, url, data) {
     return fetch(url, {
         method: method,
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
+            'X-CSRFToken': urls.csrfToken,
         },
         body: JSON.stringify(data),
     }).then(response => {
