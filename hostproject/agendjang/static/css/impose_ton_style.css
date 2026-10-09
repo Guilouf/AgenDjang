@@ -3,6 +3,14 @@ body {
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #222;
     margin: 0;
+    /* the page fills the window: calendar stretches, tags on its right, footer below */
+    height: 100dvh;
+    display: grid;
+    grid-template-columns: 1fr minmax(14rem, 18%);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "calendar tags"
+        "footer footer";
 }
 
 ul {  /* no bullet list */
@@ -24,12 +32,10 @@ button:hover, input[type="submit"]:hover, input[type="button"]:hover {
 }
 
 #tags {
+    grid-area: tags;
+    overflow-y: auto; /* a long tag list scrolls instead of stretching the page */
     background-color: #d8d8d8;
-    float: right;
-    width: 19%; /* 1% margin*/
-    margin: 0px;
     padding: 0.5em;
-    box-sizing: border-box;
 }
 
 #tags details {
@@ -57,16 +63,15 @@ button:hover, input[type="submit"]:hover, input[type="button"]:hover {
     padding: 0.5em;
 }
 
-#calendar {
+#calendar_area {
+    grid-area: calendar;
+    min-width: 0; /* lets the grid shrink it below the calendar's content width */
     background-color: #73A471;
-    float: left;
-    width: 80%;
     padding: 1em;
-    box-sizing: border-box;
 }
 
 footer {
-    clear: both;
+    grid-area: footer;
     padding: 0.5em;
 }
 
@@ -74,7 +79,7 @@ dialog {
     border: 1px solid #73A471;
     border-radius: 6px;
     padding: 1.2em;
-    min-width: 20em;
+    min-width: min(20em, calc(100vw - 2em - 2.4em)); /* on phones, room for the margin and the padding */
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
@@ -93,4 +98,31 @@ dialog .dialog-close {
     height: 1.8em;
     padding: 0;
     line-height: 1;
+}
+
+/* phones: a single column, the page scrolls from the calendar down to the tags */
+@media (max-width: 768px) {
+    body {
+        height: auto;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        grid-template-areas:
+            "calendar"
+            "tags"
+            "footer";
+    }
+
+    #calendar_area {
+        height: 80dvh;
+        padding: 0.5em;
+    }
+
+    #calendar .fc-header-toolbar { /* fullcalendar toolbar wraps instead of overflowing */
+        flex-wrap: wrap;
+        gap: 0.5em;
+    }
+
+    #calendar .fc-toolbar-title {
+        font-size: 1.2em;
+    }
 }

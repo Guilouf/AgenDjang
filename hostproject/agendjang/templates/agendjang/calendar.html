@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Agendjang</title>
     {% load static %}
     <link rel='stylesheet' href="{% static 'css/impose_ton_style.css' %}" />
@@ -26,7 +27,10 @@
         <div id="dialog-content"></div>
     </dialog>
 
-    <div id='calendar'></div>
+    <!--fullcalendar sets the height of #calendar itself, so the layout is styled on this wrapper-->
+    <div id="calendar_area">
+        <div id='calendar'></div>
+    </div>
 
     <div id=tags>
 

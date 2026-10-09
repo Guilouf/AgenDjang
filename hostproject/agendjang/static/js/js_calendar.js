@@ -74,7 +74,10 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
 
     const calendarEl = document.getElementById('calendar');
     calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
+        // the month grid is too cramped on a phone; same breakpoint as the css one
+        initialView: window.matchMedia('(max-width: 768px)').matches ? 'timeGridWeek' : 'dayGridMonth',
+        height: '100%',  // fills #calendar_area, whose height follows the page
+        expandRows: true,  // time slots stretch to fill that height
         editable: true,  // event on the calendar can be modified
         droppable: true, // allow external event drop
         forceEventDuration: true, // if not all day and no end date, create default end date
