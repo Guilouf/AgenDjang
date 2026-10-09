@@ -2,128 +2,78 @@
 // document.currentScript is only set while the script is first executing, so read them now
 const urls = document.currentScript.dataset;
 
-function getCookie(name) {
-    /*from django docs. parse cookie*/
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-// wrapper for a JSON PUT request; leave trailing / on url
-function put(url, data, callback) {
-    fetch(url, {
-        method: 'PUT',
+// JSON request to the REST API; leave trailing / on url. Rejects when the backend refuses the change
+function apiRequest(method, url, data) {
+    return fetch(url, {
+        method: method,
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
+            'X-CSRFToken': urls.csrfToken,
         },
         body: JSON.stringify(data),
-    })
-        .then(response => response.ok ? response.json() : null)
-        .then(callback);
+    }).then(response => {
+        if (!response.ok) throw new Error(`${method} ${url} failed with status ${response.status}`);
+    });
 }
 
-// wrapper for a JSON POST request; leave trailing / on url
-function post(url, data, callback) {
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-        },
-        body: JSON.stringify(data),
-    })
-        .then(response => response.ok ? response.json() : null)
-        .then(callback);
-}
-
-function remove(url, callback) {
-    // DELETE responses have no body (204 No Content), so there's nothing to parse
-    fetch(url, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-        },
-    })
-        .then(callback);
-}
-
-function postDaterange(start, end, taskId, callback) {
-    let postDateRange = {
-            start_date: start.toISOString(),
-            end_date: end.toISOString(),
-            task: taskId,
-        };
-    post(urls.daterangesUrl, postDateRange, callback)
-}
-
-function putDaterange(event, endOverride) {
-    /*Modyfy daterange according to event data. endOverride lets eventDrop force
-    a computed end date without mutating the (read-only) FullCalendar event.*/
-    let daterange = {
+function toDaterange(event, end = event.end) {
+    return {
         start_date: event.start.toISOString(),
-        end_date: (endOverride || event.end).toISOString(),
+        end_date: end.toISOString(),
         task: event.extendedProps.taskId,
     };
-
-    put(urls.daterangesUrl+event.id+'/', daterange,
-        function(data) {}
-    );
 }
 
-function deleteDateRange(dateRangeId) {
-    remove(urls.daterangesUrl+dateRangeId+'/',
-        function(data) {}
-    );
+// the calendar already shows the change: persist it, revert it if the backend refuses it, then
+// refetch the events either way, since part of their data (e.g. color) is computed by the backend
+function persistChange(request, revert) {
+    request
+        .catch(error => {
+            console.error(error);
+            revert();
+        })
+        .finally(() => calendar.refetchEvents());
 }
 
-// loads dialog content from another url, then shows the dialog;
-// resolves with the dialog's content element once it's filled
-function loadDialog(domId, relUrl) {
-    const dialog = document.querySelector(domId);
-    const content = dialog.querySelector('.dialog-content');
-    dialog.showModal();
-    return fetch(relUrl)
-        .then(response => response.text())
-        .then(html => {
-            content.innerHTML = html;
-            return content;
+// reloads the tags sidebar through htmx, so its buttons get their hx-get processed,
+// keeping its accordions open state
+function reloadTagList() {
+    const tagList = document.getElementById('tag_list');
+    const openTagIds = [...tagList.querySelectorAll('details[open]')].map(details => details.dataset.tagId);
+
+    htmx.ajax('GET', urls.tagListUrl, tagList)
+        .then(() => {
+            openTagIds.forEach(tagId => tagList.querySelector(`details[data-tag-id="${tagId}"]`).open = true);
         });
 }
 
-function postTaskFormData(date) {
-    // scoped to #task_dialog rather than a bare 'form' selector, since a stray
-    // form left loaded in another dialog would otherwise be picked up instead
-    let formData = new FormData(document.querySelector('#task_dialog form'))
+// the dialog is shown once htmx filled it; swaps within its content (e.g. a form
+// re-rendered with errors) bubble up here too, and must not show it again
+document.addEventListener('htmx:afterSwap', function(swapEvent) {
+    if (swapEvent.target.id === 'dialog-content') {
+        document.getElementById('dialog').showModal();
+    }
+});
 
-    // a task created by clicking a day spans the full day (24h = allDay, per the API's own convention)
-    let end = new Date(date);
-    end.setDate(end.getDate() + 1);
+// dialog forms are posted by htmx to their classic django form view: on success the view redirects,
+// so the response comes from another url than the posted one, and that page is thrown away;
+// otherwise the view answers with the form re-rendered with its errors, swapped in place of the form
+document.addEventListener('htmx:beforeSwap', function(swapEvent) {
+    const pathInfo = swapEvent.detail.pathInfo;
+    if (swapEvent.target.tagName === 'FORM' && pathInfo.responsePath !== pathInfo.requestPath) {
+        swapEvent.detail.shouldSwap = false;
+        document.getElementById('dialog').close();
+        calendar.refetchEvents();
+        reloadTagList();
+    }
+});
 
-    fetch(urls.tasksUrl, { method: 'POST', body: formData })
-        .then(response => response.ok ? response.json() : null)
-        .then(task => {
-            if (!task) return;  // validation failed; leave the dialog open instead of silently proceeding
-            postDaterange(date, end, task.id, function(response) {
-                location.reload()  // refresh page
-            })
-        });
-}
+let calendar;
 
 document.addEventListener('DOMContentLoaded', function() {  // called when page is completely loaded
 
     const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
+    calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         editable: true,  // event on the calendar can be modified
         droppable: true, // allow external event drop
@@ -146,32 +96,37 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
         events: urls.eventsUrl, // fullcalendar handles the call format
 
         dateClick: function(info) {
-            loadDialog('#task_dialog', 'create_task')
-                .then(content => {
-                    // modify input button to send AJAX request instead of a normal form submit
-                    const submitBtn = content.querySelector('#task_input');
-                    submitBtn.type = 'button';
-                    submitBtn.onclick = () => postTaskFormData(info.date);
-                });
+            // a task created by clicking a day spans the full day (24h = allDay, per the API's own convention),
+            // while clicking a time slot (day and week views) creates a one hour event
+            const end = new Date(info.date);
+            if (info.allDay) {
+                end.setDate(end.getDate() + 1);
+            } else {
+                end.setHours(end.getHours() + 1);
+            }
+
+            const dateRange = new URLSearchParams({ start_date: info.date.toISOString(), end_date: end.toISOString() });
+            htmx.ajax('GET', 'create_task?' + dateRange, '#dialog-content');
         },
 
         eventClick: function(info) {
             const event = info.event;
 
-            loadDialog('#task_dialog', 'update_task/'+event.extendedProps.taskId)
-                .then(content => {
+            htmx.ajax('GET', 'update_task/'+event.extendedProps.taskId, '#dialog-content')
+                .then(() => {
+                    const content = document.getElementById('dialog-content');
                     // add unlink button to dialog
                     const unlinkBtn = document.createElement('input');
                     unlinkBtn.type = 'button';
                     unlinkBtn.value = 'Unlink the date';
                     unlinkBtn.onclick = function () {
-                        deleteDateRange(event.id)  // remove event in db
-                        event.remove();  // rm event in calendar
-                        content.closest('dialog').close()  // closes dialog
+                        content.closest('dialog').close();
+                        event.remove();
+                        // nothing to revert by hand: the refetch brings the event back
+                        persistChange(apiRequest('DELETE', urls.daterangesUrl+event.id+'/'), () => {});
                     };
                     content.appendChild(unlinkBtn);
                 });
-            dialog.showModal();
         },
 
         // when dragndrop finished and datetime changed (internal event dragndrop)
@@ -183,26 +138,23 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
                 end = new Date(event.start);
                 end.setDate(end.getDate() + 1);
             }
-            putDaterange(event, end)
+            persistChange(apiRequest('PUT', urls.daterangesUrl+event.id+'/', toDaterange(event, end)), info.revert);
         },
 
         // when timestamp resize is finished and time changed
         eventResize: function(info) {
-            putDaterange(info.event)
+            const event = info.event;
+            persistChange(apiRequest('PUT', urls.daterangesUrl+event.id+'/', toDaterange(event)), info.revert);
         },
 
         // drop callback only for low level drop data, this gets the external dropped event
         eventReceive: function(info) {
-            const event = info.event;
-
-            // post a new daterange, but if form is cancelled it's keeped in db
-            postDaterange(event.start, event.end, event.extendedProps.taskId, function(response) {
-                // FullCalendar already auto-inserted its own client-side copy of this event on drop;
-                // remove it before refetching, otherwise both it and the server's authoritative
-                // version would be shown side by side until the next full page load
-                event.remove();
-                calendar.refetchEvents();
-            });
+            // FullCalendar keeps its own client-side copy of the dropped event, outside the events source,
+            // so a refetch wouldn't replace it: it's removed on success too, in favor of the backend's version
+            persistChange(
+                apiRequest('POST', urls.daterangesUrl, toDaterange(info.event)).then(() => info.event.remove()),
+                info.revert,
+            );
         },
 
     });

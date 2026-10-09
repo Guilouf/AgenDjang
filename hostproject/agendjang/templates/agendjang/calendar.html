@@ -7,63 +7,40 @@
     <link rel='stylesheet' href="{% static 'css/impose_ton_style.css' %}" />
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.21/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
 
-    <!--api urls are handed to the static js through data-* attributes-->
+    <!--api urls and the csrf token are handed to the static js through data-* attributes -->
     <script src="{% static 'js/js_calendar.js' %}"
             data-dateranges-url="{% url 'agendjang:api:dateranges-list' %}"
-            data-tasks-url="{% url 'agendjang:api:tasks-list' %}"
-            data-events-url="{% url 'agendjang:api:events-list' %}"></script>
+            data-tag-list-url="{% url 'agendjang:tag_list' %}"
+            data-events-url="{% url 'agendjang:api:events-list' %}"
+            data-csrf-token="{% csrf_token %}">
+    </script>
 
 </head>
 
-<body>
-    <!--content loaded on demand; called by eventClick in js_calendar-->
-    {% include 'agendjang/_dialog.html' with dialog_id='task_dialog' dialog_title='Edit task' %}
+<!--every hx-get button loads its content into the dialog, shown by js_calendar once filled-->
+<body hx-target="#dialog-content">
+    <dialog id="dialog">
+        <button type="button" class="dialog-close" onclick="this.closest('dialog').close()">&times;</button>
+        <div id="dialog-content"></div>
+    </dialog>
 
     <div id='calendar'></div>
 
     <div id=tags>
 
-        {% include 'agendjang/_dialog.html' with dialog_id='create_tag_dialog' dialog_title='Create tag' %}
-        <button id="btn_create_tag" type="button"
-                onclick="loadDialog('#create_tag_dialog', 'create_tag')">New tag</button>
+        <button id="btn_create_tag" type="button" hx-get="create_tag">New tag</button>
 
-    {% for tag in tag_list %}
-        <details>
-
-            <summary>{{ tag.name }}</summary>
-
-            <div>
-            <!--necessary div to contain tasks into accordion-->
-                {% include 'agendjang/_dialog.html' with dialog_id='modify_tag_dialog' dialog_suffix=tag.pk dialog_title='Modify tag' %}
-                <button type="button"
-                        onclick="loadDialog('#modify_tag_dialog-{{ tag.pk }}', 'update_tag/{{tag.pk}}')">Modify tag</button>
-
-            {% for task in tag.task_set.all %}
-                {% if not task.done %}
-                    <!--several classes split with spaces; data-* attrs read by FullCalendar's Draggable-->
-                    <!--dialog is a sibling, not a child: FullCalendar's Draggable makes this whole div's
-                    subtree natively draggable, and a <dialog> nested inside it would have its own inputs
-                    hijacked as a drag gesture instead of receiving clicks/keystrokes normally-->
-                    <div class="task_div {{ task.pk }}" data-title="{{ task.name }}" data-task-id="{{ task.pk }}"> {{ task.name }}
-                            <button type="button"
-                                    onclick="loadDialog('#edit_task_dialog-{{ task.pk }}', 'update_task/{{task.pk}}' )">EDIT</button>
-                    </div>
-                    {% include 'agendjang/_dialog.html' with dialog_id='edit_task_dialog' dialog_suffix=task.pk dialog_title='Edit task' %}
-                {% endif %}
-
-            {% endfor %}
-
-            </div>
-        </details>
-    {% endfor %}
+    <!--reloaded by the js after each form submit; Draggable listens on #tags, so it keeps working-->
+    <div id="tag_list">
+        {% include 'agendjang/_tag_list.html' %}
+    </div>
 
     </div>
 
     <footer>
-        {% include 'agendjang/_dialog.html' with dialog_id='help_page' dialog_title='Help Page' %}
-        <button id="btn_help" type="button"
-                onclick="loadDialog('#help_page', 'help')">Help</button>
+        <button id="btn_help" type="button" hx-get="help">Help</button>
     </footer>
 
 </body>

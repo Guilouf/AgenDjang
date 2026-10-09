@@ -1,0 +1,23 @@
+{% for tag in tag_list %}
+    <!--data-tag-id lets the js keep the accordion open state across reloads of this list-->
+    <details data-tag-id="{{ tag.pk }}">
+
+        <summary>{{ tag.name }}</summary>
+
+        <div>
+        <!--necessary div to contain tasks into accordion-->
+            <button type="button" hx-get="update_tag/{{ tag.pk }}">Modify tag</button>
+
+        {% for task in tag.task_set.all %}
+            {% if not task.done %}
+                <!--several classes split with spaces; data-* attrs read by FullCalendar's Draggable-->
+                <div class="task_div {{ task.pk }}" data-title="{{ task.name }}" data-task-id="{{ task.pk }}"> {{ task.name }}
+                        <button type="button" hx-get="update_task/{{ task.pk }}">EDIT</button>
+                </div>
+            {% endif %}
+
+        {% endfor %}
+
+        </div>
+    </details>
+{% endfor %}

@@ -1,11 +1,5 @@
 from rest_framework import serializers
-from agendjang.models import Task, DateRange
-
-
-class TaskSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Task
-        fields = '__all__'
+from agendjang.models import DateRange
 
 
 class DateRangeSerializer(serializers.ModelSerializer):
