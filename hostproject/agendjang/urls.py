@@ -22,6 +22,7 @@ urlpatterns = [
     # calendars
     path('', views.CalendarView.as_view(), name='view_calendar'),
     path('tags', views.TagListView.as_view(), name='tag_list'),
+    path('projects', views.ProjectListView.as_view(), name='project_list'),
 
     # Tasks
     path('create_task', views.TaskCreate.as_view(), name='create_task'),
@@ -30,5 +31,9 @@ urlpatterns = [
     # Tags
     path('create_tag', views.TagCreate.as_view(), name='create_tag'),
     path('update_tag/<int:pk>', views.TagUpdate.as_view(), name='update_tag'),
+
+    # Projects
+    path('create_project', views.ProjectCreate.as_view(), name='create_project'),
+    path('update_project/<int:pk>', views.ProjectUpdate.as_view(), name='update_project'),
 
 ]

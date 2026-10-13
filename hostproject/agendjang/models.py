@@ -20,6 +20,7 @@ class Task(models.Model):
     points = models.IntegerField(default=1, validators=[MinValueValidator(0)])
 
     many_tags = models.ManyToManyField('Tag', blank=True)
+    project = models.ForeignKey('Project', null=True, blank=True, on_delete=models.SET_NULL)
 
     objects = TaskManager()
 
@@ -46,3 +47,11 @@ class Tag(models.Model):
 
     def __str__(self):
         return f"Tag {self.name}"
+
+
+class Project(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Project {self.name}"

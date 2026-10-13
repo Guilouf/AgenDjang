@@ -35,15 +35,17 @@ function persistChange(request, revert) {
         .finally(() => calendar.refetchEvents());
 }
 
-// reloads the tags sidebar through htmx, so its buttons get their hx-get processed,
+// reloads a sidebar list (tags or projects) through htmx, so its buttons get their hx-get processed,
 // keeping its accordions open state
-function reloadTagList() {
-    const tagList = document.getElementById('tag_list');
-    const openTagIds = [...tagList.querySelectorAll('details[open]')].map(details => details.dataset.tagId);
+function reloadList(listId, url) {
+    const list = document.getElementById(listId);
+    const openIds = [...list.querySelectorAll('details[open]')].map(details => details.dataset.id);
 
-    htmx.ajax('GET', urls.tagListUrl, tagList)
+    // the list as source too: by default the source is <body>, so the reloads of both lists would share it,
+    // and htmx would queue the second one, resolving its promise at once, before its swap
+    htmx.ajax('GET', url, {source: list, target: list})
         .then(() => {
-            openTagIds.forEach(tagId => tagList.querySelector(`details[data-tag-id="${tagId}"]`).open = true);
+            openIds.forEach(id => list.querySelector(`details[data-id="${id}"]`).open = true);
         });
 }
 
@@ -64,7 +66,9 @@ document.addEventListener('htmx:beforeSwap', function(swapEvent) {
         swapEvent.detail.shouldSwap = false;
         document.getElementById('dialog').close();
         calendar.refetchEvents();
-        reloadTagList();
+        // a task edit can change both its tags and its project
+        reloadList('tag_list', urls.tagListUrl);
+        reloadList('project_list', urls.projectListUrl);
     }
 });
 
@@ -164,10 +168,19 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
     });
     calendar.render();
 
-    // makes tasks in the tag sidebar draggable onto the calendar
+    // sidebar tabs: shows the panel of the clicked tab, hides the others
+    const tabs = document.querySelectorAll('.sidebar_tabs [role="tab"]');
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+        tabs.forEach(other => {
+            other.setAttribute('aria-selected', other === tab);
+            document.getElementById(other.getAttribute('aria-controls')).hidden = other !== tab;
+        });
+    }));
+
+    // makes tasks in the sidebar (both tabs) draggable onto the calendar
     new FullCalendar.Draggable(document.getElementById('tags'), {
         itemSelector: '.task_div',
-        longPressDelay: 600,  // not inherited from the calendar's option. For the tag sidebar tasks.
+        longPressDelay: 600,  // not inherited from the calendar's option. For the sidebar tasks.
         eventData: function(eventEl) {
             return {
                 title: eventEl.dataset.title,

@@ -1,5 +1,5 @@
 from django import forms
-from agendjang.models import Task, Tag
+from agendjang.models import Task, Tag, Project
 
 
 class TaskForm(forms.ModelForm):
@@ -16,6 +16,12 @@ class TaskForm(forms.ModelForm):
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
+        fields = '__all__'
+
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project
         fields = '__all__'
 
 
