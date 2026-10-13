@@ -120,5 +120,5 @@ class TagListView(TemplateView):
         return ctx
 
 
-class CalendarView(TagListView):
+class CalendarView(TemplateView):
     template_name = 'agendjang/calendar.html'

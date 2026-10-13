@@ -7,38 +7,13 @@ from agendjang.models import Task, Tag, DateRange
 
 
 class CalendarViewTest(TestCase):
-    def test_renders_with_tag_list_in_context(self):
-        tag = Tag.objects.create(name="Home")
-
+    def test_loads_the_tags_sidebar_through_htmx(self):
         response = self.client.get(reverse('agendjang:view_calendar'))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'agendjang/calendar.html')
-        self.assertIn(tag, response.context['tag_list'])
-
-    def test_only_non_done_tasks_of_a_tag_are_listed(self):
-        """This is focused on the accordion view only"""
-        tag = Tag.objects.create(name="Home")
-        todo = Task.objects.create(name="Todo task")
-        todo.many_tags.add(tag)
-        done = Task.objects.create(name="Done task", done=True)
-        done.many_tags.add(tag)
-
-        response = self.client.get(reverse('agendjang:view_calendar'))
-
-        self.assertContains(response, "Todo task")
-        self.assertNotContains(response, "Done task")
-
-    def test_archived_tasks_of_a_tag_are_not_listed(self):
-        """tag.task_set is built on top of the model's custom manager, so it
-        inherits the archive filtering just like Task.objects.all() does."""
-        tag = Tag.objects.create(name="Home")
-        archived = Task.objects.create(name="Archived task", archive=True)
-        archived.many_tags.add(tag)
-
-        response = self.client.get(reverse('agendjang:view_calendar'))
-
-        self.assertNotContains(response, "Archived task")
+        self.assertTemplateNotUsed(response, 'agendjang/_tag_list.html')
+        self.assertContains(response, f'hx-get="{reverse("agendjang:tag_list")}"')
 
 
 class TagListViewTest(TestCase):
@@ -53,8 +28,6 @@ class TagListViewTest(TestCase):
         self.assertIn(tag, response.context['tag_list'])
 
     def test_only_non_done_tasks_of_a_tag_are_listed(self):
-        """This is reloaded by the js after each form submit, so it must filter
-        tasks the same way the full calendar page does."""
         tag = Tag.objects.create(name="Home")
         todo = Task.objects.create(name="Todo task")
         todo.many_tags.add(tag)
@@ -67,6 +40,8 @@ class TagListViewTest(TestCase):
         self.assertNotContains(response, "Done task")
 
     def test_archived_tasks_of_a_tag_are_not_listed(self):
+        """tag.task_set is built on top of the model's custom manager, so it
+        inherits the archive filtering just like Task.objects.all() does."""
         tag = Tag.objects.create(name="Home")
         archived = Task.objects.create(name="Archived task", archive=True)
         archived.many_tags.add(tag)

@@ -38,7 +38,9 @@
 
     <!--reloaded by the js after each form submit; Draggable listens on #tags, so it keeps working-->
     <div id="tag_list">
-        {% include 'agendjang/_tag_list.html' %}
+        <!--replaces itself on page load: its hx-target, needed to override the body's dialog target,
+        would otherwise be inherited by the sidebar's own buttons-->
+        <div hx-get="{% url 'agendjang:tag_list' %}" hx-trigger="load" hx-target="this" hx-swap="outerHTML"></div>
     </div>
 
     </div>
