@@ -1,0 +1,6 @@
+{% if not task.done %}
+    <!--several classes split with spaces; data-* attrs read by FullCalendar's Draggable-->
+    <div class="task_div {{ task.pk }}" data-title="{{ task.name }}" data-task-id="{{ task.pk }}"> {{ task.name }}
+            <button type="button" hx-get="update_task/{{ task.pk }}">EDIT</button>
+    </div>
+{% endif %}

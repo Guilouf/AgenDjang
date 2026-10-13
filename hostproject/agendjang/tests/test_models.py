@@ -5,7 +5,7 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.utils import timezone
 
-from agendjang.models import Task, DateRange, Tag
+from agendjang.models import Task, DateRange, Tag, Project
 
 
 class TaskModelTest(TestCase):
@@ -83,3 +83,18 @@ class TagModelTest(TestCase):
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 Tag.objects.create(name="Work")
+
+
+class ProjectModelTest(TestCase):
+    def test_str(self):
+        project = Project.objects.create(name="Garden")
+        self.assertEqual(str(project), "Project Garden")
+
+    def test_deleting_project_keeps_its_tasks(self):
+        project = Project.objects.create(name="Garden")
+        task = Task.objects.create(name="Plant trees", project=project)
+
+        project.delete()
+
+        task.refresh_from_db()
+        self.assertIsNone(task.project)

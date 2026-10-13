@@ -38,6 +38,21 @@ button:hover, input[type="submit"]:hover, input[type="button"]:hover {
     padding: 0.5em;
 }
 
+.sidebar_tabs {
+    display: flex;
+    gap: 0.3em;
+    margin-bottom: 0.5em;
+}
+
+.sidebar_tabs button {
+    flex: 1;
+}
+
+.sidebar_tabs button[aria-selected="true"] {
+    background-color: #73A471;
+    color: white;
+}
+
 #tags details {
     background-color: #f4f4f4;
     border: 1px solid #b8b8b8;

@@ -14,6 +14,7 @@
     <script src="{% static 'js/js_calendar.js' %}"
             data-dateranges-url="{% url 'agendjang:api:dateranges-list' %}"
             data-tag-list-url="{% url 'agendjang:tag_list' %}"
+            data-project-list-url="{% url 'agendjang:project_list' %}"
             data-events-url="{% url 'agendjang:api:events-list' %}"
             data-csrf-token="{% csrf_token %}">
     </script>
@@ -34,14 +35,31 @@
 
     <div id=tags>
 
-        <button id="btn_create_tag" type="button" hx-get="create_tag">New tag</button>
+        <!--switched by the js; only the lists inside the panels are reloaded, so the selected tab is kept-->
+        <div class="sidebar_tabs" role="tablist">
+            <button type="button" role="tab" aria-selected="true" aria-controls="tags_panel">Tags</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="projects_panel">Projects</button>
+        </div>
 
-    <!--reloaded by the js after each form submit; Draggable listens on #tags, so it keeps working-->
-    <div id="tag_list">
-        <!--replaces itself on page load: its hx-target, needed to override the body's dialog target,
-        would otherwise be inherited by the sidebar's own buttons-->
-        <div hx-get="{% url 'agendjang:tag_list' %}" hx-trigger="load" hx-target="this" hx-swap="outerHTML"></div>
-    </div>
+        <div id="tags_panel" role="tabpanel">
+            <button id="btn_create_tag" type="button" hx-get="create_tag">New tag</button>
+
+            <!--reloaded by the js after each form submit; Draggable listens on #tags, so it keeps working-->
+            <div id="tag_list">
+                <!--replaces itself on page load: its hx-target, needed to override the body's dialog target,
+                would otherwise be inherited by the sidebar's own buttons-->
+                <div hx-get="{% url 'agendjang:tag_list' %}" hx-trigger="load" hx-target="this" hx-swap="outerHTML"></div>
+            </div>
+        </div>
+
+        <div id="projects_panel" role="tabpanel" hidden>
+            <button id="btn_create_project" type="button" hx-get="create_project">New project</button>
+
+            <!--same loading and reloading as #tag_list-->
+            <div id="project_list">
+                <div hx-get="{% url 'agendjang:project_list' %}" hx-trigger="load" hx-target="this" hx-swap="outerHTML"></div>
+            </div>
+        </div>
 
     </div>
 

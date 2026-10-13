@@ -3,17 +3,19 @@ from datetime import datetime, UTC
 from django.test import TestCase
 from django.urls import reverse
 
-from agendjang.models import Task, Tag, DateRange
+from agendjang.models import Task, Tag, DateRange, Project
 
 
 class CalendarViewTest(TestCase):
-    def test_loads_the_tags_sidebar_through_htmx(self):
+    def test_loads_the_sidebar_lists_through_htmx(self):
         response = self.client.get(reverse('agendjang:view_calendar'))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'agendjang/calendar.html')
         self.assertTemplateNotUsed(response, 'agendjang/_tag_list.html')
+        self.assertTemplateNotUsed(response, 'agendjang/_project_list.html')
         self.assertContains(response, f'hx-get="{reverse("agendjang:tag_list")}"')
+        self.assertContains(response, f'hx-get="{reverse("agendjang:project_list")}"')
 
 
 class TagListViewTest(TestCase):
@@ -47,6 +49,36 @@ class TagListViewTest(TestCase):
         archived.many_tags.add(tag)
 
         response = self.client.get(reverse('agendjang:tag_list'))
+
+        self.assertNotContains(response, "Archived task")
+
+
+class ProjectListViewTest(TestCase):
+    def test_renders_only_the_projects_sidebar(self):
+        project = Project.objects.create(name="Garden")
+
+        response = self.client.get(reverse('agendjang:project_list'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'agendjang/_project_list.html')
+        self.assertTemplateNotUsed(response, 'agendjang/calendar.html')
+        self.assertIn(project, response.context['project_list'])
+
+    def test_only_non_done_tasks_of_a_project_are_listed(self):
+        project = Project.objects.create(name="Garden")
+        Task.objects.create(name="Todo task", project=project)
+        Task.objects.create(name="Done task", done=True, project=project)
+
+        response = self.client.get(reverse('agendjang:project_list'))
+
+        self.assertContains(response, "Todo task")
+        self.assertNotContains(response, "Done task")
+
+    def test_archived_tasks_of_a_project_are_not_listed(self):
+        project = Project.objects.create(name="Garden")
+        Task.objects.create(name="Archived task", archive=True, project=project)
+
+        response = self.client.get(reverse('agendjang:project_list'))
 
         self.assertNotContains(response, "Archived task")
 
@@ -112,6 +144,19 @@ class TaskCreateUpdateViewTest(TestCase):
         self.assertEqual(task.points, 5)
         self.assertTrue(task.done)
 
+    def test_post_links_task_to_a_project(self):
+        task = Task.objects.create(name='Original')
+        project = Project.objects.create(name='Garden')
+
+        response = self.client.post(
+            reverse('agendjang:update_task', args=[task.pk]),
+            data={'name': 'Original', 'points': 1, 'project': project.pk},
+        )
+
+        self.assertRedirects(response, reverse('agendjang:view_calendar'))
+        task.refresh_from_db()
+        self.assertEqual(task.project, project)
+
 
 class TagCreateUpdateViewTest(TestCase):
     def test_post_creates_tag_and_redirects_to_calendar(self):
@@ -144,3 +189,35 @@ class TagCreateUpdateViewTest(TestCase):
         self.assertRedirects(response, reverse('agendjang:view_calendar'))
         tag.refresh_from_db()
         self.assertEqual(tag.name, 'New name')
+
+
+class ProjectCreateUpdateViewTest(TestCase):
+    def test_post_creates_project_and_redirects_to_calendar(self):
+        response = self.client.post(reverse('agendjang:create_project'), data={'name': 'Garden'})
+
+        self.assertRedirects(response, reverse('agendjang:view_calendar'))
+        self.assertTrue(Project.objects.filter(name='Garden').exists())
+
+    def test_post_duplicate_name_does_not_create_project(self):
+        Project.objects.create(name='Garden')
+
+        response = self.client.post(reverse('agendjang:create_project'), data={'name': 'Garden'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Project.objects.filter(name='Garden').count(), 1)
+
+        errors = response.context['form'].errors.as_data()
+        self.assertEqual(errors.keys(), {'name'})
+        self.assertEqual(errors['name'][0].code, 'unique')
+
+    def test_post_updates_existing_project(self):
+        project = Project.objects.create(name='Old name')
+
+        response = self.client.post(
+            reverse('agendjang:update_project', args=[project.pk]),
+            data={'name': 'New name'},
+        )
+
+        self.assertRedirects(response, reverse('agendjang:view_calendar'))
+        project.refresh_from_db()
+        self.assertEqual(project.name, 'New name')
