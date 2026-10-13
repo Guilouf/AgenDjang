@@ -1,0 +1,17 @@
+{% for project in project_list %}
+    <!--data-id lets the js keep the accordion open state across reloads of this list-->
+    <details data-id="{{ project.pk }}">
+
+        <summary>{{ project.name }}</summary>
+
+        <div>
+        <!--necessary div to contain tasks into accordion-->
+            <button type="button" hx-get="update_project/{{ project.pk }}">Modify project</button>
+
+        {% for task in project.task_set.all %}
+            {% include 'agendjang/_task_item.html' %}
+        {% endfor %}
+
+        </div>
+    </details>
+{% endfor %}

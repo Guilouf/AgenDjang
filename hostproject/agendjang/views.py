@@ -6,8 +6,8 @@ from django.views.generic import TemplateView, CreateView, UpdateView
 from django.utils import timezone
 from django.urls import reverse_lazy
 
-from agendjang.models import Task, DateRange, Tag
-from agendjang.forms import TaskForm, TaskCreateForm, TagForm
+from agendjang.models import Task, DateRange, Tag, Project
+from agendjang.forms import TaskForm, TaskCreateForm, TagForm, ProjectForm
 from agendjang.serializers import DateRangeSerializer, EventSerializer
 
 from rest_framework import viewsets
@@ -110,6 +110,18 @@ class TagUpdate(UpdateView):
     success_url = reverse_lazy('agendjang:view_calendar')
 
 
+class ProjectCreate(CreateView):
+    model = Project
+    form_class = ProjectForm
+    success_url = reverse_lazy('agendjang:view_calendar')
+
+
+class ProjectUpdate(UpdateView):
+    model = Project
+    form_class = ProjectForm
+    success_url = reverse_lazy('agendjang:view_calendar')
+
+
 class TagListView(TemplateView):
     """Sidebar of tags and their tasks, reloaded on its own after each form submit"""
     template_name = 'agendjang/_tag_list.html'
@@ -117,6 +129,16 @@ class TagListView(TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['tag_list'] = Tag.objects.all()
+        return ctx
+
+
+class ProjectListView(TemplateView):
+    """Sidebar of projects and their tasks, reloaded on its own after each form submit"""
+    template_name = 'agendjang/_project_list.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['project_list'] = Project.objects.all()
         return ctx
 
 
