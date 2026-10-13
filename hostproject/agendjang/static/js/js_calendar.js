@@ -41,7 +41,9 @@ function reloadList(listId, url) {
     const list = document.getElementById(listId);
     const openIds = [...list.querySelectorAll('details[open]')].map(details => details.dataset.id);
 
-    htmx.ajax('GET', url, list)
+    // the list as source too: by default the source is <body>, so the reloads of both lists would share it,
+    // and htmx would queue the second one, resolving its promise at once, before its swap
+    htmx.ajax('GET', url, {source: list, target: list})
         .then(() => {
             openIds.forEach(id => list.querySelector(`details[data-id="${id}"]`).open = true);
         });
