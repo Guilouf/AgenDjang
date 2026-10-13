@@ -42,7 +42,7 @@
         </div>
 
         <div id="tags_panel" role="tabpanel">
-            <button id="btn_create_tag" type="button" hx-get="create_tag">New tag</button>
+            <button type="button" hx-get="create_tag">New tag</button>
 
             <!--reloaded by the js after each form submit; Draggable listens on #tags, so it keeps working-->
             <div id="tag_list">
@@ -53,7 +53,7 @@
         </div>
 
         <div id="projects_panel" role="tabpanel" hidden>
-            <button id="btn_create_project" type="button" hx-get="create_project">New project</button>
+            <button type="button" hx-get="create_project">New project</button>
 
             <!--same loading and reloading as #tag_list-->
             <div id="project_list">
