@@ -10,8 +10,8 @@
 month view, unless it's an all day task.
 
 - **Add a new daterange to a task:** The task needs to be associated
-with a tag, then drag the tag to the calendar to create and link a new
-daterange
+with a tag or a project, then drag the task from the sidebar to the
+calendar to create and link a new daterange
 
 # Projects
 
