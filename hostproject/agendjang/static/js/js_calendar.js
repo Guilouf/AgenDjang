@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
         expandRows: true,  // time slots stretch to fill that height
         editable: true,  // event on the calendar can be modified
         droppable: true, // allow external event drop
+        longPressDelay: 600,  // on touch screens, ms to hold an event or a slot before dragging or selecting it
         forceEventDuration: true, // if not all day and no end date, create default end date
         slotLabelFormat: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },  // 24h time format
         eventTimeFormat: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },
@@ -166,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
     // makes tasks in the tag sidebar draggable onto the calendar
     new FullCalendar.Draggable(document.getElementById('tags'), {
         itemSelector: '.task_div',
+        longPressDelay: 600,  // not inherited from the calendar's option. For the tag sidebar tasks.
         eventData: function(eventEl) {
             return {
                 title: eventEl.dataset.title,
