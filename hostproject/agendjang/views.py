@@ -2,7 +2,7 @@ from pathlib import Path
 
 from django.db import transaction
 from django.http import HttpResponse
-from django.views.generic import TemplateView, CreateView, UpdateView
+from django.views.generic import TemplateView, CreateView, UpdateView, ListView
 from django.utils import timezone
 from django.urls import reverse_lazy
 
@@ -122,24 +122,16 @@ class ProjectUpdate(UpdateView):
     success_url = reverse_lazy('agendjang:view_calendar')
 
 
-class TagListView(TemplateView):
+class TagListView(ListView):
     """Sidebar of tags and their tasks, reloaded on its own after each form submit"""
+    model = Tag
     template_name = 'agendjang/_tag_list.html'
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['tag_list'] = Tag.objects.all()
-        return ctx
 
-
-class ProjectListView(TemplateView):
+class ProjectListView(ListView):
     """Sidebar of projects and their tasks, reloaded on its own after each form submit"""
+    model = Project
     template_name = 'agendjang/_project_list.html'
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['project_list'] = Project.objects.all()
-        return ctx
 
 
 class CalendarView(TemplateView):
