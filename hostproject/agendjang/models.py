@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -20,6 +21,7 @@ class Task(models.Model):
     points = models.IntegerField(default=1, validators=[MinValueValidator(0)])
 
     many_tags = models.ManyToManyField('Tag', blank=True)
+    project = models.ForeignKey('Project', null=True, blank=True, on_delete=models.SET_NULL)
 
     objects = TaskManager()
 
@@ -46,3 +48,16 @@ class Tag(models.Model):
 
     def __str__(self):
         return f"Tag {self.name}"
+
+
+class Project(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    done = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Project {self.name}"
+
+    def clean(self):
+        if self.done and self.task_set.filter(archive=False, done=False).exists():
+            raise ValidationError({'done': "All the project's non archived tasks must be done first"})

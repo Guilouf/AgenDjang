@@ -38,6 +38,21 @@ button:hover, input[type="submit"]:hover, input[type="button"]:hover {
     padding: 0.5em;
 }
 
+.sidebar_tabs {
+    display: flex;
+    gap: 0.3em;
+    margin-bottom: 0.5em;
+}
+
+.sidebar_tabs button {
+    flex: 1;
+}
+
+.sidebar_tabs button[aria-selected="true"] {
+    background-color: #73A471;
+    color: white;
+}
+
 #tags details {
     background-color: #f4f4f4;
     border: 1px solid #b8b8b8;
@@ -61,6 +76,28 @@ button:hover, input[type="submit"]:hover, input[type="button"]:hover {
     background-color: white;
     margin: 0.6em;
     padding: 0.5em;
+}
+
+#tags .task_div.task_done { /* done tasks, only listed in the projects tab */
+    border-color: #a0a0a0;
+    background-color: #d9d9d9;
+    color: #666;
+    text-decoration: line-through;
+}
+
+#tags .task_done button {
+    text-decoration: none;
+}
+
+#tags .show_done_projects {
+    display: block;
+    margin: 0.5em 0;
+}
+
+#tags details.project_done > summary { /* done projects, listed when "Show completed projects" is checked */
+    background-color: #d9d9d9;
+    color: #666;
+    text-decoration: line-through;
 }
 
 #calendar_area {

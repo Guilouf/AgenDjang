@@ -1,13 +1,14 @@
 from pathlib import Path
 
 from django.db import transaction
+from django.db.models import Prefetch
 from django.http import HttpResponse
-from django.views.generic import TemplateView, CreateView, UpdateView
+from django.views.generic import TemplateView, CreateView, UpdateView, ListView
 from django.utils import timezone
 from django.urls import reverse_lazy
 
-from agendjang.models import Task, DateRange, Tag
-from agendjang.forms import TaskForm, TaskCreateForm, TagForm
+from agendjang.models import Task, DateRange, Tag, Project
+from agendjang.forms import TaskForm, TaskCreateForm, TagForm, ProjectForm, ProjectCreateForm
 from agendjang.serializers import DateRangeSerializer, EventSerializer
 
 from rest_framework import viewsets
@@ -110,15 +111,41 @@ class TagUpdate(UpdateView):
     success_url = reverse_lazy('agendjang:view_calendar')
 
 
-class TagListView(TemplateView):
+class ProjectCreate(CreateView):
+    model = Project
+    form_class = ProjectCreateForm
+    success_url = reverse_lazy('agendjang:view_calendar')
+
+
+class ProjectUpdate(UpdateView):
+    model = Project
+    form_class = ProjectForm
+    success_url = reverse_lazy('agendjang:view_calendar')
+
+
+class TagListView(ListView):
     """Sidebar of tags and their tasks, reloaded on its own after each form submit"""
+    model = Tag
     template_name = 'agendjang/_tag_list.html'
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['tag_list'] = Tag.objects.all()
-        return ctx
+
+class ProjectListView(ListView):
+    """Sidebar of projects and their tasks, reloaded on its own after each form submit"""
+    # to_attr since TaskManager.all() filters, so project.task_set.all would query again, unordered
+    queryset = Project.objects.prefetch_related(Prefetch(
+        'task_set',
+        queryset=Task.objects.filter(archive=False).order_by('-done', 'pk'),
+        to_attr='sorted_tasks',
+    )).order_by('-done', 'pk')
+    template_name = 'agendjang/_project_list.html'
+
+    def get_queryset(self):
+        # done projects only with the sidebar's "Show completed projects" checkbox
+        queryset = super().get_queryset()
+        if self.request.GET.get('show_done'):
+            return queryset
+        return queryset.filter(done=False)
 
 
-class CalendarView(TagListView):
+class CalendarView(TemplateView):
     template_name = 'agendjang/calendar.html'

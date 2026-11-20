@@ -5,7 +5,7 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.utils import timezone
 
-from agendjang.models import Task, DateRange, Tag
+from agendjang.models import Task, DateRange, Tag, Project
 
 
 class TaskModelTest(TestCase):
@@ -83,3 +83,35 @@ class TagModelTest(TestCase):
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 Tag.objects.create(name="Work")
+
+
+class ProjectModelTest(TestCase):
+    def test_str(self):
+        project = Project.objects.create(name="Garden")
+        self.assertEqual(str(project), "Project Garden")
+
+    def test_deleting_project_keeps_its_tasks(self):
+        project = Project.objects.create(name="Garden")
+        task = Task.objects.create(name="Plant trees", project=project)
+
+        project.delete()
+
+        task.refresh_from_db()
+        self.assertIsNone(task.project)
+
+    def test_done_project_with_an_undone_task_is_invalid(self):
+        project = Project.objects.create(name="Garden")
+        Task.objects.create(name="Plant trees", project=project)
+
+        project.done = True
+        with self.assertRaises(ValidationError) as cm:
+            project.full_clean()
+        self.assertEqual(cm.exception.message_dict.keys(), {'done'})
+
+    def test_done_project_with_done_or_archived_tasks_is_valid(self):
+        project = Project.objects.create(name="Garden")
+        Task.objects.create(name="Plant trees", done=True, project=project)
+        Task.objects.create(name="Dig a pond", archive=True, project=project)
+
+        project.done = True
+        project.full_clean()  # should not raise
