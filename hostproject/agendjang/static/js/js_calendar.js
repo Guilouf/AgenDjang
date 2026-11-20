@@ -45,7 +45,11 @@ function reloadList(listId, url) {
     // and htmx would queue the second one, resolving its promise at once, before its swap
     htmx.ajax('GET', url, {source: list, target: list})
         .then(() => {
-            openIds.forEach(id => list.querySelector(`details[data-id="${id}"]`).open = true);
+            // an open item can leave the list, e.g. a project just marked as done
+            openIds.forEach(id => {
+                const details = list.querySelector(`details[data-id="${id}"]`);
+                if (details) details.open = true;
+            });
         });
 }
 
