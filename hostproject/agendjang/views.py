@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.urls import reverse_lazy
 
 from agendjang.models import Task, DateRange, Tag, Project
-from agendjang.forms import TaskForm, TaskCreateForm, TagForm, ProjectForm
+from agendjang.forms import TaskForm, TaskCreateForm, TagForm, ProjectForm, ProjectCreateForm
 from agendjang.serializers import DateRangeSerializer, EventSerializer
 
 from rest_framework import viewsets
@@ -113,7 +113,7 @@ class TagUpdate(UpdateView):
 
 class ProjectCreate(CreateView):
     model = Project
-    form_class = ProjectForm
+    form_class = ProjectCreateForm
     success_url = reverse_lazy('agendjang:view_calendar')
 
 
@@ -136,8 +136,15 @@ class ProjectListView(ListView):
         'task_set',
         queryset=Task.objects.filter(archive=False).order_by('-done', 'pk'),
         to_attr='sorted_tasks',
-    ))
+    )).order_by('-done', 'pk')
     template_name = 'agendjang/_project_list.html'
+
+    def get_queryset(self):
+        # done projects only with the sidebar's "Show completed projects" checkbox
+        queryset = super().get_queryset()
+        if self.request.GET.get('show_done'):
+            return queryset
+        return queryset.filter(done=False)
 
 
 class CalendarView(TemplateView):

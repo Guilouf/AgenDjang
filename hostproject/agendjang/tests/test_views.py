@@ -64,6 +64,26 @@ class ProjectListViewTest(TestCase):
         self.assertTemplateNotUsed(response, 'agendjang/calendar.html')
         self.assertIn(project, response.context['project_list'])
 
+    def test_done_projects_are_not_listed_by_default(self):
+        ongoing = Project.objects.create(name="Garden")
+        Project.objects.create(name="Kitchen", done=True)
+
+        response = self.client.get(reverse('agendjang:project_list'))
+
+        self.assertEqual(list(response.context['project_list']), [ongoing])
+
+    def test_show_done_lists_done_projects_first_then_by_creation(self):
+        a = Project.objects.create(name="Project A")
+        b = Project.objects.create(name="Project B", done=True)
+        c = Project.objects.create(name="Project C")
+        d = Project.objects.create(name="Project D", done=True)
+
+        response = self.client.get(reverse('agendjang:project_list'), {'show_done': 1})
+
+        self.assertEqual(list(response.context['project_list']), [b, d, a, c])
+        self.assertContains(response, f'<details data-id="{b.pk}" class="project_done">')
+        self.assertNotContains(response, f'<details data-id="{a.pk}" class="project_done">')
+
     def test_done_tasks_of_a_project_are_listed_as_done(self):
         project = Project.objects.create(name="Garden")
         todo = Task.objects.create(name="Todo task", project=project)
@@ -169,6 +189,24 @@ class TaskCreateUpdateViewTest(TestCase):
         task.refresh_from_db()
         self.assertEqual(task.project, project)
 
+    def test_project_choices_exclude_done_projects(self):
+        ongoing = Project.objects.create(name='Garden')
+        Project.objects.create(name='Kitchen', done=True)
+
+        response = self.client.get(reverse('agendjang:create_task'), self.DATE_RANGE)
+
+        self.assertEqual(list(response.context['form'].fields['project'].queryset), [ongoing])
+
+    def test_project_choices_keep_the_task_own_done_project(self):
+        ongoing = Project.objects.create(name='Garden')
+        finished = Project.objects.create(name='Kitchen', done=True)
+        Project.objects.create(name='Attic', done=True)
+        task = Task.objects.create(name='Paint walls', done=True, project=finished)
+
+        response = self.client.get(reverse('agendjang:update_task', args=[task.pk]))
+
+        self.assertEqual(set(response.context['form'].fields['project'].queryset), {ongoing, finished})
+
 
 class TagCreateUpdateViewTest(TestCase):
     def test_post_creates_tag_and_redirects_to_calendar(self):
@@ -210,6 +248,16 @@ class ProjectCreateUpdateViewTest(TestCase):
         self.assertRedirects(response, reverse('agendjang:view_calendar'))
         self.assertTrue(Project.objects.filter(name='Garden').exists())
 
+    def test_create_form_does_not_offer_done(self):
+        response = self.client.get(reverse('agendjang:create_project'))
+
+        self.assertNotIn('done', response.context['form'].fields)
+
+    def test_post_done_creates_project_not_done(self):
+        self.client.post(reverse('agendjang:create_project'), data={'name': 'Garden', 'done': 'on'})
+
+        self.assertFalse(Project.objects.get(name='Garden').done)
+
     def test_post_duplicate_name_does_not_create_project(self):
         Project.objects.create(name='Garden')
 
@@ -233,3 +281,18 @@ class ProjectCreateUpdateViewTest(TestCase):
         self.assertRedirects(response, reverse('agendjang:view_calendar'))
         project.refresh_from_db()
         self.assertEqual(project.name, 'New name')
+
+    def test_post_done_with_an_undone_task_does_not_update_project(self):
+        project = Project.objects.create(name='Garden')
+        Task.objects.create(name='Plant trees', project=project)
+
+        # Set project to "done"
+        response = self.client.post(
+            reverse('agendjang:update_project', args=[project.pk]),
+            data={'name': 'Garden', 'done': 'true'},
+        )
+
+        self.assertEqual(response.status_code, 200)  # re-renders form with errors
+        project.refresh_from_db()
+        self.assertFalse(project.done)
+        self.assertEqual(response.context['form'].errors.keys(), {'done'})

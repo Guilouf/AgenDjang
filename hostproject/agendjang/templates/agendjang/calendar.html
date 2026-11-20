@@ -55,6 +55,12 @@
         <div id="projects_panel" role="tabpanel" hidden>
             <button type="button" hx-get="create_project">New project</button>
 
+            <!--read by the js when reloading the list. autocomplete off: otherwise the browser restores it
+            checked after a page reload, while the list loads without the done projects-->
+            <label class="show_done_projects">
+                <input type="checkbox" id="show_done_projects" autocomplete="off"> Show completed projects
+            </label>
+
             <!--same loading and reloading as #tag_list-->
             <div id="project_list">
                 <div hx-get="{% url 'agendjang:project_list' %}" hx-trigger="load" hx-target="this" hx-swap="outerHTML"></div>

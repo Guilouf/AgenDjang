@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -56,3 +57,7 @@ class Project(models.Model):
 
     def __str__(self):
         return f"Project {self.name}"
+
+    def clean(self):
+        if self.done and self.task_set.filter(archive=False, done=False).exists():
+            raise ValidationError({'done': "All the project's non archived tasks must be done first"})

@@ -1,6 +1,6 @@
 {% for project in project_list %}
     <!--data-id lets the js keep the accordion open state across reloads of this list-->
-    <details data-id="{{ project.pk }}">
+    <details data-id="{{ project.pk }}" {% if project.done %}class="project_done"{% endif %}>
 
         <summary>{{ project.name }}</summary>
 

@@ -24,3 +24,8 @@ both views can be dragged to the calendar
 
 - **Done tasks:** the Projects tab still lists them, crossed out on a grey
 background. They can be edited but not dragged to the calendar
+
+- **Finish a project:** check "Done" in its edit dialog, once all its non
+archived tasks are done. Done projects can no longer be chosen for a task,
+and leave the Projects tab, unless "Show completed projects" is checked:
+they're then listed first, crossed out, and can be reopened

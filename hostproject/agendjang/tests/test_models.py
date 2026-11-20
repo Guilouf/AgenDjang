@@ -98,3 +98,20 @@ class ProjectModelTest(TestCase):
 
         task.refresh_from_db()
         self.assertIsNone(task.project)
+
+    def test_done_project_with_an_undone_task_is_invalid(self):
+        project = Project.objects.create(name="Garden")
+        Task.objects.create(name="Plant trees", project=project)
+
+        project.done = True
+        with self.assertRaises(ValidationError) as cm:
+            project.full_clean()
+        self.assertEqual(cm.exception.message_dict.keys(), {'done'})
+
+    def test_done_project_with_done_or_archived_tasks_is_valid(self):
+        project = Project.objects.create(name="Garden")
+        Task.objects.create(name="Plant trees", done=True, project=project)
+        Task.objects.create(name="Dig a pond", archive=True, project=project)
+
+        project.done = True
+        project.full_clean()  # should not raise

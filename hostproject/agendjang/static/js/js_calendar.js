@@ -68,9 +68,15 @@ document.addEventListener('htmx:beforeSwap', function(swapEvent) {
         calendar.refetchEvents();
         // a task edit can change both its tags and its project
         reloadList('tag_list', urls.tagListUrl);
-        reloadList('project_list', urls.projectListUrl);
+        reloadList('project_list', projectListUrl());
     }
 });
+
+// the projects list, with the done projects when the sidebar's checkbox asks for them
+function projectListUrl() {
+    const showDone = document.getElementById('show_done_projects').checked;
+    return showDone ? `${urls.projectListUrl}?show_done=1` : urls.projectListUrl;
+}
 
 let calendar;
 
@@ -176,6 +182,10 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
             document.getElementById(other.getAttribute('aria-controls')).hidden = other !== tab;
         });
     }));
+
+    document.getElementById('show_done_projects').addEventListener('change', () => {
+        reloadList('project_list', projectListUrl());
+    });
 
     // makes not done tasks in the sidebar (both tabs) draggable onto the calendar
     new FullCalendar.Draggable(document.getElementById('tags'), {

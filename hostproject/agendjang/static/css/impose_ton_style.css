@@ -89,6 +89,17 @@ button:hover, input[type="submit"]:hover, input[type="button"]:hover {
     text-decoration: none;
 }
 
+#tags .show_done_projects {
+    display: block;
+    margin: 0.5em 0;
+}
+
+#tags details.project_done > summary { /* done projects, listed when "Show completed projects" is checked */
+    background-color: #d9d9d9;
+    color: #666;
+    text-decoration: line-through;
+}
+
 #calendar_area {
     grid-area: calendar;
     min-width: 0; /* lets the grid shrink it below the calendar's content width */
