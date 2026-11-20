@@ -8,8 +8,8 @@
         <!--necessary div to contain tasks into accordion-->
             <button type="button" hx-get="update_project/{{ project.pk }}">Modify project</button>
 
-        {% for task in project.task_set.all %}
-            {% include 'agendjang/_task_item.html' %}
+        {% for task in project.sorted_tasks %}
+            {% include 'agendjang/_task_item.html' with show_done=True %}
         {% endfor %}
 
         </div>

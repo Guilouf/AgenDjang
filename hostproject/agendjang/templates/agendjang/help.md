@@ -21,3 +21,6 @@ its edit dialog
 - **Switch views:** the Tags and Projects tabs at the top of the sidebar
 switch between the tasks grouped by tag and grouped by project. Tasks of
 both views can be dragged to the calendar
+
+- **Done tasks:** the Projects tab still lists them, crossed out on a grey
+background. They can be edited but not dragged to the calendar

@@ -64,15 +64,27 @@ class ProjectListViewTest(TestCase):
         self.assertTemplateNotUsed(response, 'agendjang/calendar.html')
         self.assertIn(project, response.context['project_list'])
 
-    def test_only_non_done_tasks_of_a_project_are_listed(self):
+    def test_done_tasks_of_a_project_are_listed_as_done(self):
         project = Project.objects.create(name="Garden")
-        Task.objects.create(name="Todo task", project=project)
-        Task.objects.create(name="Done task", done=True, project=project)
+        todo = Task.objects.create(name="Todo task", project=project)
+        done = Task.objects.create(name="Done task", done=True, project=project)
 
         response = self.client.get(reverse('agendjang:project_list'))
 
-        self.assertContains(response, "Todo task")
-        self.assertNotContains(response, "Done task")
+        self.assertContains(response, f'class="task_div {todo.pk}"')
+        self.assertContains(response, f'class="task_div task_done {done.pk}"')
+        self.assertContains(response, f'hx-get="update_task/{done.pk}"')
+
+    def test_tasks_of_a_project_are_ordered_done_first_then_by_creation(self):
+        project = Project.objects.create(name="Garden")
+        for name, done in [("Task A", False), ("Task B", True), ("Task C", False), ("Task D", True)]:
+            Task.objects.create(name=name, done=done, project=project)
+
+        response = self.client.get(reverse('agendjang:project_list'))
+
+        content = response.content.decode()
+        positions = [content.index(name) for name in ["Task B", "Task D", "Task A", "Task C"]]
+        self.assertEqual(positions, sorted(positions))
 
     def test_archived_tasks_of_a_project_are_not_listed(self):
         project = Project.objects.create(name="Garden")

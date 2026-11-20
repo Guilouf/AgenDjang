@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from django.db import transaction
+from django.db.models import Prefetch
 from django.http import HttpResponse
 from django.views.generic import TemplateView, CreateView, UpdateView, ListView
 from django.utils import timezone
@@ -130,7 +131,12 @@ class TagListView(ListView):
 
 class ProjectListView(ListView):
     """Sidebar of projects and their tasks, reloaded on its own after each form submit"""
-    model = Project
+    # to_attr since TaskManager.all() filters, so project.task_set.all would query again, unordered
+    queryset = Project.objects.prefetch_related(Prefetch(
+        'task_set',
+        queryset=Task.objects.filter(archive=False).order_by('-done', 'pk'),
+        to_attr='sorted_tasks',
+    ))
     template_name = 'agendjang/_project_list.html'
 
 

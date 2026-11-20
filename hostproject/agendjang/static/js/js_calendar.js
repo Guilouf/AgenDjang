@@ -177,9 +177,9 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
         });
     }));
 
-    // makes tasks in the sidebar (both tabs) draggable onto the calendar
+    // makes not done tasks in the sidebar (both tabs) draggable onto the calendar
     new FullCalendar.Draggable(document.getElementById('tags'), {
-        itemSelector: '.task_div',
+        itemSelector: '.task_div:not(.task_done)',
         longPressDelay: 600,  // not inherited from the calendar's option. For the sidebar tasks.
         eventData: function(eventEl) {
             return {

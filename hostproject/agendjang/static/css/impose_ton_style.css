@@ -78,6 +78,17 @@ button:hover, input[type="submit"]:hover, input[type="button"]:hover {
     padding: 0.5em;
 }
 
+#tags .task_div.task_done { /* done tasks, only listed in the projects tab */
+    border-color: #a0a0a0;
+    background-color: #d9d9d9;
+    color: #666;
+    text-decoration: line-through;
+}
+
+#tags .task_done button {
+    text-decoration: none;
+}
+
 #calendar_area {
     grid-area: calendar;
     min-width: 0; /* lets the grid shrink it below the calendar's content width */
