@@ -16,6 +16,7 @@
             data-tag-list-url="{% url 'agendjang:tag_list' %}"
             data-project-list-url="{% url 'agendjang:project_list' %}"
             data-events-url="{% url 'agendjang:api:events-list' %}"
+            data-stats-url="{% url 'agendjang:stats' %}"
             data-csrf-token="{% csrf_token %}">
     </script>
 
@@ -71,6 +72,8 @@
 
     <footer>
         <button id="btn_help" type="button" hx-get="help">Help</button>
+        <!--no hx-get: the js requests the stats of the period currently shown by the calendar-->
+        <button id="btn_stats" type="button">Statistics</button>
     </footer>
 
 </body>
