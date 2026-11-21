@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Max, Count, F
 from django.http import HttpResponse
 from django.views.generic import TemplateView, CreateView, UpdateView, ListView
 from django.utils import timezone
@@ -149,3 +149,29 @@ class ProjectListView(ListView):
 
 class CalendarView(TemplateView):
     template_name = 'agendjang/calendar.html'
+
+
+class StatsView(TemplateView):
+    """Done tasks per tag between the 'start' and 'end' params, the period shown by the calendar"""
+    template_name = 'agendjang/_stats.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        start = datetime.fromisoformat(self.request.GET['start'])
+        end = datetime.fromisoformat(self.request.GET['end'])
+
+        # no completion date in the model: a task is considered done at the start of its last daterange.
+        # Its start rather than its end, since an all-day task on the period's last day ends exactly at 'end'
+        done_tasks = Task.objects.filter(archive=False, done=True).annotate(
+            done_date=Max('daterange__start_date'),
+        ).filter(done_date__gte=start, done_date__lt=end)
+
+        # grouped on the task side: the m2m is left joined, so tasks without tags come out as a tag None row.
+        # done_tasks as a subquery, since it's already grouped by task for its Max
+        context['tag_counts'] = Task.objects.filter(pk__in=done_tasks.values('pk')).values(
+            tag=F('many_tags__name'),
+        ).annotate(done_count=Count('pk')).order_by('-done_count', 'tag')
+
+        context['start'] = start
+        context['last_day'] = end - timedelta(days=1)
+        return context

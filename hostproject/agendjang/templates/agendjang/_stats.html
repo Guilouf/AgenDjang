@@ -1,0 +1,16 @@
+<h2>Done tasks from {{ start|date:"d/m/Y" }} to {{ last_day|date:"d/m/Y" }}</h2>
+
+{% if tag_counts %}
+    <table>
+        <thead>
+            <tr><th>Tag</th><th>Done tasks</th></tr>
+        </thead>
+        <tbody>
+        {% for row in tag_counts %}
+            <tr><td>{{ row.tag|default:"No tag" }}</td><td>{{ row.done_count }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No task done in this period</p>
+{% endif %}

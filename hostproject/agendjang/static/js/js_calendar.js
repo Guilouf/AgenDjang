@@ -187,6 +187,15 @@ document.addEventListener('DOMContentLoaded', function() {  // called when page 
         });
     }));
 
+    // current range rather than active range: in month view, the active one includes the neighbouring months' days
+    document.getElementById('btn_stats').addEventListener('click', () => {
+        const period = new URLSearchParams({
+            start: calendar.view.currentStart.toISOString(),
+            end: calendar.view.currentEnd.toISOString(),
+        });
+        htmx.ajax('GET', urls.statsUrl + '?' + period, '#dialog-content');
+    });
+
     document.getElementById('show_done_projects').addEventListener('change', () => {
         reloadList('project_list', projectListUrl());
     });

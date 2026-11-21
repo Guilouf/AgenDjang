@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import datetime, timedelta, UTC
 
 from django.test import TestCase
 from django.urls import reverse
@@ -296,3 +296,73 @@ class ProjectCreateUpdateViewTest(TestCase):
         project.refresh_from_db()
         self.assertFalse(project.done)
         self.assertEqual(response.context['form'].errors.keys(), {'done'})
+
+
+class StatsViewTest(TestCase):
+    # a week in Paris time, as sent by the calendar's javascript (Date.toISOString)
+    PERIOD = {'start': '2026-11-15T23:00:00.000Z', 'end': '2026-11-22T23:00:00.000Z'}
+    IN_PERIOD = datetime(2026, 11, 18, 10, tzinfo=UTC)
+    AFTER_PERIOD = datetime(2026, 11, 25, 10, tzinfo=UTC)
+
+    def create_task(self, name, start_date, tags=(), **fields):
+        task = Task.objects.create(name=name, **fields)
+        task.many_tags.add(*tags)
+        DateRange.objects.create(task=task, start_date=start_date, end_date=start_date + timedelta(hours=1))
+        return task
+
+    def get_counts(self):
+        response = self.client.get(reverse('agendjang:stats'), self.PERIOD)
+        self.assertEqual(response.status_code, 200)
+        return {row['tag']: row['done_count'] for row in response.context['tag_counts']}
+
+    def test_done_task_is_counted_under_each_of_its_tags(self):
+        home, garden = Tag.objects.create(name="Home"), Tag.objects.create(name="Garden")
+        self.create_task("Mow", self.IN_PERIOD, tags=[home, garden], done=True)
+        self.create_task("Clean", self.IN_PERIOD, tags=[home], done=True)
+
+        tag_counts = self.get_counts()
+
+        self.assertEqual(tag_counts, {"Home": 2, "Garden": 1})
+
+    def test_tags_are_ordered_by_count(self):
+        home, garden = Tag.objects.create(name="Home"), Tag.objects.create(name="Garden")
+        self.create_task("Mow", self.IN_PERIOD, tags=[garden], done=True)
+        self.create_task("Weed", self.IN_PERIOD, tags=[garden], done=True)
+        self.create_task("Clean", self.IN_PERIOD, tags=[home], done=True)
+
+        tag_counts = self.get_counts()
+
+        self.assertEqual(list(tag_counts), ["Garden", "Home"])
+
+    def test_done_task_whose_last_daterange_is_after_the_period_is_not_counted(self):
+        home = Tag.objects.create(name="Home")
+        task = self.create_task("Clean", self.IN_PERIOD, tags=[home], done=True)
+        DateRange.objects.create(task=task, start_date=self.AFTER_PERIOD,
+                                 end_date=self.AFTER_PERIOD + timedelta(hours=1))
+
+        tag_counts = self.get_counts()
+
+        self.assertEqual(tag_counts, {})
+
+    def test_done_task_without_tags_is_counted_as_untagged(self):
+        self.create_task("Clean", self.IN_PERIOD, done=True)
+
+        tag_counts = self.get_counts()
+
+        self.assertEqual(tag_counts, {None: 1})
+
+    def test_undone_and_archived_tasks_are_not_counted(self):
+        home = Tag.objects.create(name="Home")
+        self.create_task("Todo", self.IN_PERIOD, tags=[home])
+        self.create_task("Archived", self.IN_PERIOD, tags=[home], done=True, archive=True)
+        self.create_task("Untagged todo", self.IN_PERIOD)
+
+        tag_counts = self.get_counts()
+
+        self.assertEqual(tag_counts, {})
+
+    def test_empty_period_shows_a_message(self):
+        response = self.client.get(reverse('agendjang:stats'), self.PERIOD)
+
+        self.assertContains(response, "No task done in this period")
+        self.assertContains(response, "from 16/11/2026 to 22/11/2026")
